@@ -51,11 +51,11 @@ app.get('/api/stock/quote/:symbol', async (req, res) => {
   }
 });
 
-// Get stock intraday data
-app.get('/api/stock/intraday/:symbol', async (req, res) => {
+// Get stock data
+app.get('/api/stock/:symbol', async (req, res) => {
   try {
     const { symbol } = req.params;
-    const { interval = '5min', outputsize = '30' } = req.query;
+    const { interval, outputsize } = req.query;
     
     const url = `${TWELVE_DATA_BASE_URL}/time_series?symbol=${symbol}&interval=${interval}&outputsize=${outputsize}&apikey=${TWELVE_DATA_API_KEY}`;
     
@@ -70,48 +70,14 @@ app.get('/api/stock/intraday/:symbol', async (req, res) => {
     }
     
     if (!data.values || !data.meta) {
-      return res.status(404).json({ error: 'Intraday data not found' });
+      return res.status(404).json({ error: 'Stock data not found' });
     }
     
     // Return original API response
     res.json(data);
     
   } catch (error) {
-    console.error('Failed to get intraday data:', error);
-    res.status(500).json({ 
-      error: 'Internal server error',
-      details: error.message 
-    });
-  }
-});
-
-// Get stock daily data
-app.get('/api/stock/daily/:symbol', async (req, res) => {
-  try {
-    const { symbol } = req.params;
-    const { outputsize = '30' } = req.query;
-    
-    const url = `${TWELVE_DATA_BASE_URL}/time_series?symbol=${symbol}&interval=1day&outputsize=${outputsize}&apikey=${TWELVE_DATA_API_KEY}`;
-    
-    const response = await fetch(url);
-    const data = await response.json();
-    
-    if (data.code && data.status === 'error') {
-      return res.status(data.code).json({ 
-        error: 'API request failed',
-        details: data.message
-      });
-    }
-    
-    if (!data.values || !data.meta) {
-      return res.status(404).json({ error: 'Daily data not found' });
-    }
-    
-    // Return original API response
-    res.json(data);
-    
-  } catch (error) {
-    console.error('Failed to get daily data:', error);
+    console.error('Failed to get stock data:', error);
     res.status(500).json({ 
       error: 'Internal server error',
       details: error.message 
