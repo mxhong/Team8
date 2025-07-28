@@ -22,8 +22,8 @@ const port = 3000;
 const db = mysql.createPool({
   host: 'localhost',
   user: 'root',
-  password: '19971104',
-  database: 'profileAPP',
+  password: 'gtly30jcio',
+  database: 'portfolio_manager',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
@@ -355,10 +355,32 @@ app.get('/api/user/:userId/assets/cash', async (req, res) => {
     const [result] = await db.execute('SELECT SUM(quantity) as total_cash FROM assets WHERE user_id = ? AND asset_type = "cash"', [userId]);
     res.json({
       userId: parseInt(userId),
-      totalCash: result[0].total_cash || 0
+      totalCash: Math.round((result[0].total_cash || 0) * 100) / 100
     });
   } catch (error) {
     console.error('Failed to get cash:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: error.message 
+    });
+  }
+});
+
+// Get total stock cost for a user
+app.get('/api/user/:userId/assets/stocks/cost', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const [assets] = await db.execute('SELECT * FROM assets WHERE user_id = ? AND asset_type = "stock"', [userId]);
+    let totalCost = 0;
+    for (const asset of assets) {
+      totalCost += parseFloat(asset.quantity) * parseFloat(asset.average_price);
+    }
+    res.json({
+      userId: parseInt(userId),
+      totalCost: Math.round(totalCost * 100) / 100
+    });
+  } catch (error) {
+    console.error('Failed to get total stock cost:', error);
     res.status(500).json({ 
       error: 'Internal server error',
       details: error.message 
@@ -500,53 +522,6 @@ app.get('/api/user/:userId/assets/details', async (req, res) => {
 
 //查询交易记录
 // 查询用户的交易记录
-// app.get('/api/user/:userId/transactions', async (req, res) => {
-//   try {
-//     const { userId } = req.params;
-//     const { symbol, type } = req.query;
-
-//     let baseQuery = 'SELECT * FROM transactions WHERE user_id = ?';
-//     const queryParams = [userId];
-
-//     if (symbol) {
-//       baseQuery += ' AND symbol = ?';
-//       queryParams.push(symbol.toUpperCase());
-//     }
-
-//     if (type && ['buy', 'sell'].includes(type)) {
-//       baseQuery += ' AND type = ?';
-//       queryParams.push(type);
-//     }
-
-//     baseQuery += ' ORDER BY timestamp DESC';
-
-//     const [rows] = await db.execute(baseQuery, queryParams);
-
-//     const formatted = rows.map(tx => ({
-//       id: tx.id,
-//       symbol: tx.symbol,
-//       type: tx.type,
-//       quantity: tx.quantity,
-//       price: parseFloat(tx.price),
-//       timestamp: tx.timestamp
-//     }));
-
-//     res.json({
-//       userId: parseInt(userId),
-//       total: formatted.length,
-//       transactions: formatted
-//     });
-
-//   } catch (error) {
-//     console.error('Failed to fetch transactions:', error);
-//     res.status(500).json({
-//       error: 'Internal server error',
-//       details: error.message
-//     });
-//   }
-// });
-
-
 //改为分页查询
 app.get('/api/user/:userId/transactions', async (req, res) => {
   try {
