@@ -11,11 +11,22 @@ const app = express();
 const port = 3000;
 
 // MySQL connection config (adjust as needed)
-const db = await mysql.createConnection({
+// const db = await mysql.createConnection({
+//   host: 'localhost',
+//   user: 'root',
+//   password: '19971104', // set your password
+//   database: 'profileAPP',
+// });
+
+//创建数据库连接池
+const db = mysql.createPool({
   host: 'localhost',
   user: 'root',
-  password: '19971104', // set your password
+  password: '19971104',
   database: 'profileAPP',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
 
@@ -533,6 +544,187 @@ app.get('/api/user/:userId/transactions', async (req, res) => {
       details: error.message
     });
   }
+});
+
+//交易——买入
+// 如果 Node 版本 <18，需引入 node-fetch
+// const fetch = require('node-fetch');
+
+//fetch 实时价格函数
+async function fetchPrice(symbol) {
+  const res = await fetch(`http://localhost:3000/api/stock/quote/${symbol}`);
+  if (!res.ok) return null;
+  const data = await res.json();
+  return parseFloat(data.close);
+}
+
+// 买入接口
+app.post('/api/user/:userId/buy', async (req, res) => {
+  const { userId } = req.params;
+  let { symbol, quantity } = req.body;
+
+  symbol = symbol.toUpperCase();
+  const q = parseFloat(quantity);
+  if (!symbol || isNaN(q) || q <= 0) {
+    return res.status(400).json({ error: 'Invalid symbol or quantity' });
+  }
+  //声明连接
+  let conn;
+
+  try {
+    const price = await fetchPrice(symbol);
+    console.log(`Fetched price for ${symbol}: ${price}`);
+    if (!price) return res.status(404).json({ error: 'Stock price not found' });
+
+    const totalCost = price * q;
+
+    conn = await db.getConnection();
+    await conn.beginTransaction();
+
+    // 获取现金余额
+    const [cashRows] = await conn.execute(
+      `SELECT quantity FROM assets WHERE user_id = ? AND asset_type = 'cash' AND symbol = 'USD'`,
+      [userId]
+    );
+    const cash = parseFloat(cashRows[0]?.quantity || 0);
+
+    if (cash < totalCost) {
+      await conn.rollback();
+      return res.status(400).json({ error: 'Insufficient cash balance' });
+    }
+
+    // 查询是否已有该股票
+    const [stockRows] = await conn.execute(
+      `SELECT quantity, average_price FROM assets WHERE user_id = ? AND asset_type = 'stock' AND symbol = ?`,
+      [userId, symbol]
+    );
+    const stock = stockRows[0];
+
+    if (stock) {
+      const newQty = parseFloat(stock.quantity) + q;
+      const newAvgPrice = (
+        parseFloat(stock.quantity) * parseFloat(stock.average_price) + totalCost
+      ) / newQty;
+
+      await conn.execute(
+        `UPDATE assets SET quantity = ?, average_price = ? WHERE user_id = ? AND asset_type = 'stock' AND symbol = ?`,
+        [newQty, newAvgPrice, userId, symbol]
+      );
+    } else {
+      await conn.execute(
+        `INSERT INTO assets (user_id, asset_type, symbol, quantity, average_price) VALUES (?, 'stock', ?, ?, ?)`,
+        [userId, symbol, q, price]
+      );
+    }
+
+    // 扣除现金
+    await conn.execute(
+      `UPDATE assets SET quantity = quantity - ? WHERE user_id = ? AND asset_type = 'cash' AND symbol = 'USD'`,
+      [totalCost, userId]
+    );
+
+    // 写入交易记录
+    await conn.execute(
+      `INSERT INTO transactions (user_id, symbol, type, quantity, price) VALUES (?, ?, 'buy', ?, ?)`,
+      [userId, symbol, q, price]
+    );
+
+    await conn.commit();
+    res.json({
+      success: true,
+      symbol,
+      quantity: q,
+      price,
+      totalCost
+    });
+  } catch (err) {
+    console.error('Buy error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+  finally {
+    if (conn) conn.release();
+  } 
+});
+
+//卖出操作
+app.post('/api/user/:userId/sell', async (req, res) => {
+  const { userId } = req.params;
+  let { symbol, quantity } = req.body;
+
+  symbol = symbol.toUpperCase();
+  const q = parseFloat(quantity);
+  if (!symbol || isNaN(q) || q <= 0) {
+    return res.status(400).json({ error: 'Invalid symbol or quantity' });
+  }
+  let conn;
+
+  try {
+    const price = await fetchPrice(symbol);
+    console.log(`Fetched price for ${symbol}: ${price}`);
+    if (!price) return res.status(404).json({ error: 'Stock price not found' });
+
+    const totalRevenue = price * q;
+
+    conn = await db.getConnection(); // 从连接池中获取连接
+
+    // 开始事务
+    await conn.beginTransaction();
+
+    // 查询持有的该股票
+    const [stockRows] = await conn.execute(
+      `SELECT quantity FROM assets WHERE user_id = ? AND asset_type = 'stock' AND symbol = ?`,
+      [userId, symbol]
+    );
+    const stock = stockRows[0];
+    const heldQty = parseFloat(stock?.quantity || 0);
+
+    if (heldQty < q) {
+      await conn.rollback();
+      return res.status(400).json({ error: 'Insufficient stock holdings' });
+    }
+
+    if (heldQty === q) {
+      // 全部卖出就删除记录
+      await conn.execute(
+        `DELETE FROM assets WHERE user_id = ? AND asset_type = 'stock' AND symbol = ?`,
+        [userId, symbol]
+      );
+    } else {
+      // 部分卖出就更新数量
+      await conn.execute(
+        `UPDATE assets SET quantity = quantity - ? WHERE user_id = ? AND asset_type = 'stock' AND symbol = ?`,
+        [q, userId, symbol]
+      );
+    }
+
+    // 增加现金
+    await conn.execute(
+      `UPDATE assets SET quantity = quantity + ? WHERE user_id = ? AND asset_type = 'cash' AND symbol = 'USD'`,
+      [totalRevenue, userId]
+    );
+
+    // 写入交易记录
+    await conn.execute(
+      `INSERT INTO transactions (user_id, symbol, type, quantity, price) VALUES (?, ?, 'sell', ?, ?)`,
+      [userId, symbol, q, price]
+    );
+
+    await conn.commit();
+    res.json({
+      success: true,
+      symbol,
+      quantity: q,
+      price,
+      totalRevenue
+    });
+
+  } catch (err) {
+    console.error('Sell error:', err.message);
+    await conn.rollback();
+    res.status(500).json({ error: 'Internal server error' });
+  }finally {
+    if (conn) conn.release();
+  } 
 });
 
 // Start server
