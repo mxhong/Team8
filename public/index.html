@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>交易记录分页</title>
+</head>
+<body>
+  <h2>用户交易记录</h2>
+
+  <div>
+    <label>用户ID: <input type="number" id="userId" value="1"></label>
+    <label>每页条数: <input type="number" id="pageSize" value="10"></label>
+    <button onclick="loadTransactions(1)">加载第一页</button>
+  </div>
+
+  <div id="transactions"></div>
+
+  <div id="pagination" style="margin-top: 20px;"></div>
+
+  <script>
+    let currentPage = 1;
+    let totalPages = 1;
+
+    async function loadTransactions(page) {
+      const userId = document.getElementById('userId').value;
+      const pageSize = document.getElementById('pageSize').value;
+
+      const url = `http://localhost:3000/api/user/${userId}/transactions?page=${page}&pageSize=${pageSize}`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        const container = document.getElementById('transactions');
+        container.innerHTML = '<h3>交易记录:</h3><ul>' + data.transactions.map(tx => `
+          <li>
+            <b>${tx.symbol}</b> - ${tx.type} - 数量: ${tx.quantity} - 价格: ¥${tx.price} - 时间: ${new Date(tx.timestamp).toLocaleString()}
+          </li>
+        `).join('') + '</ul>';
+
+        // 分页信息
+        currentPage = data.page;
+        totalPages = Math.ceil(data.total / data.pageSize);
+
+        renderPagination();
+
+      } catch (err) {
+        alert('请求失败：' + err.message);
+      }
+    }
+
+    function renderPagination() {
+      const pagination = document.getElementById('pagination');
+      pagination.innerHTML = `
+        <button onclick="loadTransactions(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>上一页</button>
+        <span> 第 ${currentPage} 页 / 共 ${totalPages} 页 </span>
+        <button onclick="loadTransactions(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>下一页</button>
+      `;
+    }
+  </script>
+</body>
+</html>
