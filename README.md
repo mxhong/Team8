@@ -7,6 +7,50 @@ Backend API for managing user assets (stocks & cash) with trading functionality.
 1. Start server: `npm run dev`
 2. API runs at: `http://localhost:3000`
 
+## Database Design
+
+The system uses 3 main tables:
+
+### **users** - User accounts
+| Field | Type | Description |
+|-------|------|-------------|
+| id | INT | Primary key, auto-increment |
+| username | VARCHAR(50) | Unique username |
+| email | VARCHAR(255) | Unique email address |
+| password | VARCHAR(255) | User password |
+| created_at | TIMESTAMP | Account creation time |
+
+### **assets** - User portfolio holdings
+| Field | Type | Description |
+|-------|------|-------------|
+| id | INT | Primary key, auto-increment |
+| user_id | INT | Foreign key → users.id |
+| asset_type | ENUM | 'stock' or 'cash' |
+| symbol | VARCHAR(10) | Stock symbol (e.g., AAPL) or 'USD' |
+| quantity | DECIMAL(15,4) | Number of shares/amount |
+| average_price | DECIMAL(15,4) | Average cost per share (1 for cash) |
+| created_at | TIMESTAMP | Asset creation time |
+| updated_at | TIMESTAMP | Last update time |
+
+**Constraints:** Unique combination of (user_id, asset_type, symbol)
+
+### **transactions** - Trading history
+| Field | Type | Description |
+|-------|------|-------------|
+| id | INT | Primary key, auto-increment |
+| user_id | INT | Foreign key → users.id |
+| symbol | VARCHAR(10) | Stock symbol |
+| type | ENUM | 'buy' or 'sell' |
+| quantity | INT | Number of shares traded |
+| price | DECIMAL(12,2) | Price per share at transaction |
+| timestamp | TIMESTAMP | Transaction time |
+
+**Key Design Notes:**
+- Each user can have multiple assets and transactions
+- Assets table prevents duplicate holdings via unique constraint
+- Cash assets always have symbol='USD' and average_price=1
+- All tables auto-create on server startup
+
 ## API Endpoints
 
 ### Stock Market Data
