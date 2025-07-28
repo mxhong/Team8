@@ -727,6 +727,22 @@ app.post('/api/user/:userId/sell', async (req, res) => {
   } 
 });
 
+//下拉列表获取已有股票
+app.get('/api/user/:userId/held-stocks', async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const [rows] = await db.execute(
+      `SELECT symbol FROM assets WHERE user_id = ? AND asset_type = 'stock' AND quantity > 0`,
+      [userId]
+    );
+    const symbols = rows.map(row => row.symbol);
+    res.json({ success: true, symbols });
+  } catch (err) {
+    console.error('Held stocks fetch error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch held stocks' });
+  }
+});
+
 // Start server
 app.listen(port, () => {
   console.log(`Personal Asset Management System running at http://localhost:${port}`);
