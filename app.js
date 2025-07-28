@@ -14,9 +14,10 @@ const port = 3000;
 const db = await mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: 'gtly30jcio', // set your password
-  database: 'portfolio_manager',
+  password: '19971104', // set your password
+  database: 'profileAPP',
 });
+
 
 // Create tables
 await db.execute(`
@@ -28,7 +29,7 @@ await db.execute(`
      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
 `);
-
+//资产表
 await db.execute(`
   CREATE TABLE IF NOT EXISTS assets(
      id INT AUTO_INCREMENT PRIMARY KEY,
@@ -43,13 +44,27 @@ await db.execute(`
      UNIQUE KEY unique_user_asset (user_id, asset_type, symbol)
   )
 `);
+//交易记录表
+await db.execute(`
+  CREATE TABLE IF NOT EXISTS transactions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    symbol VARCHAR(10),
+    type ENUM('buy', 'sell'),
+    quantity INT,
+    price DECIMAL(12,2),
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+)`
+);
+
+// Add JSON parsing middleware
+app.use(express.json());
 
 
 // Middleware to serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Add JSON parsing middleware
-app.use(express.json());
 
 // Twelve Data API configuration
 const TWELVE_DATA_API_KEY = '43230254888343009b1591f9b3c06f5e'; // Replace with your actual API key
@@ -472,7 +487,53 @@ app.get('/api/user/:userId/assets/details', async (req, res) => {
   }
 });
 
+//查询交易记录
+// 查询用户的交易记录
+app.get('/api/user/:userId/transactions', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { symbol, type } = req.query;
 
+    let baseQuery = 'SELECT * FROM transactions WHERE user_id = ?';
+    const queryParams = [userId];
+
+    if (symbol) {
+      baseQuery += ' AND symbol = ?';
+      queryParams.push(symbol.toUpperCase());
+    }
+
+    if (type && ['buy', 'sell'].includes(type)) {
+      baseQuery += ' AND type = ?';
+      queryParams.push(type);
+    }
+
+    baseQuery += ' ORDER BY timestamp DESC';
+
+    const [rows] = await db.execute(baseQuery, queryParams);
+
+    const formatted = rows.map(tx => ({
+      id: tx.id,
+      symbol: tx.symbol,
+      type: tx.type,
+      quantity: tx.quantity,
+      price: parseFloat(tx.price),
+      timestamp: tx.timestamp
+    }));
+
+    res.json({
+      userId: parseInt(userId),
+      total: formatted.length,
+      transactions: formatted
+    });
+
+  } catch (error) {
+    console.error('Failed to fetch transactions:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      details: error.message
+    });
+  }
+});
 
 // Start server
 app.listen(port, () => {
