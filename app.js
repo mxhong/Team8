@@ -512,7 +512,7 @@ app.get('/api/user/:userId/assets/details', async (req, res) => {
   }
 });
 
-// Get one specific asset for a user
+// Get one specific asset for a user (must be placed after other specific routes)
 app.get('/api/user/:userId/assets/:asset_type/:symbol', async (req, res) => {
   try {
     const { userId, asset_type, symbol } = req.params;
