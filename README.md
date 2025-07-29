@@ -1,13 +1,54 @@
-# Personal Asset Management API
+# Personal Asset Management System
 
-Backend API for managing user assets (stocks & cash) with trading functionality. Built with Node.js + Express + MySQL.
+A comprehensive personal portfolio management system with real-time stock trading capabilities. Built with Node.js, Express, MySQL, and Twelve Data API integration.
+
+## Features
+
+- **User Authentication**: Secure user registration and login with bcrypt password encryption
+- **Real-time Stock Data**: Live stock quotes, historical data, and symbol search via Twelve Data API
+- **Portfolio Management**: Track stocks and cash with automatic cost basis calculation
+- **Real-time Trading**: Buy and sell stocks at current market prices with atomic transactions
+- **Transaction History**: Complete audit trail with pagination support
+- **Asset Analytics**: Portfolio value tracking and performance metrics
 
 ## Quick Start
 
-1. Start server: `npm run dev`
-2. API runs at: `http://localhost:3000`
+### Prerequisites
+- Node.js (v14 or higher)
+- MySQL database
+- Twelve Data API key (free tier available)
 
-## Database Design
+### Installation
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Configure MySQL database connection in `app.js`
+4. Add your Twelve Data API key to the `TWELVE_DATA_API_KEY` variable
+5. Start the server:
+   ```bash
+   npm run dev
+   ```
+6. API runs at: `http://localhost:3000`
+
+### Database Configuration
+Update the database connection settings in `app.js`:
+```javascript
+const db = mysql.createPool({
+  host: 'localhost',
+  user: 'your_username',
+  password: 'your_password',
+  database: 'portfolio_manager',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
+```
+
+The system automatically creates all required tables on startup.
+
+## Database Schema
 
 The system uses 3 main tables:
 
@@ -17,7 +58,7 @@ The system uses 3 main tables:
 | id | INT | Primary key, auto-increment |
 | username | VARCHAR(50) | Unique username |
 | email | VARCHAR(255) | Unique email address |
-| password | VARCHAR(255) | User password |
+| password | VARCHAR(255) | Encrypted password (bcrypt) |
 | created_at | TIMESTAMP | Account creation time |
 
 ### **assets** - User portfolio holdings
@@ -45,50 +86,63 @@ The system uses 3 main tables:
 | price | DECIMAL(12,2) | Price per share at transaction |
 | timestamp | TIMESTAMP | Transaction time |
 
-**Key Design Notes:**
-- Each user can have multiple assets and transactions
-- Assets table prevents duplicate holdings via unique constraint
-- Cash assets always have symbol='USD' and average_price=1
-- All tables auto-create on server startup
-
 ## API Endpoints
+
+### User Authentication
+```
+POST /api/register                              # Register new user
+POST /api/login                                 # User login
+```
 
 ### Stock Market Data
 ```
-GET /api/stock/quote/{symbol}                # Get real-time stock price
+GET /api/stock/quote/{symbol}                   # Get real-time stock price
 GET /api/stock/{symbol}?interval={}&outputsize={}  # Get historical data
-GET /api/stock/search/{keywords}             # Search stocks
+GET /api/stock/search/{keywords}                # Search stocks
 ```
 
 ### User Assets Management
 ```
-POST /api/user/{userId}/assets               # Add asset to portfolio
-GET  /api/user/{userId}/assets/details       # Get all assets with details
-GET  /api/user/{userId}/assets/cash          # Get total cash
-GET  /api/user/{userId}/assets/stocks        # Get total stock value
-GET  /api/user/{userId}/assets/stocks/cost   # Get total stock cost basis
+POST /api/user/{userId}/assets                  # Add asset to portfolio
+GET  /api/user/{userId}/assets/details          # Get all assets with details
+GET  /api/user/{userId}/assets/cash             # Get total cash
+GET  /api/user/{userId}/assets/stocks           # Get total stock value
+GET  /api/user/{userId}/assets/stocks/cost      # Get total stock cost basis
 GET  /api/user/{userId}/assets/{asset_type}/{symbol}  # Get specific asset
 ```
 
 ### Trading Operations
 ```
-POST /api/user/{userId}/buy                  # Buy stock
-POST /api/user/{userId}/sell                 # Sell stock
-GET  /api/user/{userId}/transactions         # Get transaction history
-GET  /api/user/{userId}/held-stocks          # Get list of owned stocks
+POST /api/user/{userId}/buy                     # Buy stock
+POST /api/user/{userId}/sell                    # Sell stock
+GET  /api/user/{userId}/transactions            # Get transaction history
+GET  /api/user/{userId}/held-stocks             # Get list of owned stocks
 ```
 
-**Parameters:**
-- `{symbol}` - Stock symbol (e.g., AAPL, MSFT)
-- `{userId}` - User ID (e.g., 1, 2)
-- `{asset_type}` - Asset type: `stock` or `cash`
-- `{keywords}` - Search keywords (e.g., Apple, Microsoft)
-- `interval` - Time interval: `1min`, `5min`, `1day`, etc.
-- `outputsize` - Number of data points (e.g., 30, 100)
-- `page` - Page number for pagination (default: 1)
-- `pageSize` - Records per page (default: 10)
-
 ## Request Examples
+
+### User Registration
+```bash
+POST /api/register
+Content-Type: application/json
+
+{
+  "username": "john_doe",
+  "email": "john@example.com",
+  "password": "securepassword123"
+}
+```
+
+### User Login
+```bash
+POST /api/login
+Content-Type: application/json
+
+{
+  "username": "john_doe",
+  "password": "securepassword123"
+}
+```
 
 ### Add Stock Asset
 ```bash
@@ -138,15 +192,24 @@ Content-Type: application/json
 }
 ```
 
-### Get Transaction History
+### Get Transaction History (with filters)
 ```bash
-GET /api/user/1/transactions                 # All transactions (first page)
+GET /api/user/1/transactions                    # All transactions (first page)
 GET /api/user/1/transactions?page=2&pageSize=20  # Page 2, 20 records per page
-GET /api/user/1/transactions?symbol=AAPL     # Specific stock (first page)
+GET /api/user/1/transactions?symbol=AAPL        # Specific stock transactions
 GET /api/user/1/transactions?type=buy&page=1&pageSize=5  # Buy transactions with pagination
 ```
 
 ## Response Examples
+
+### Login Response
+```json
+{
+  "message": "Login successful",
+  "id": 1,
+  "username": "john_doe"
+}
+```
 
 ### Asset Details
 ```json
@@ -161,14 +224,6 @@ GET /api/user/1/transactions?type=buy&page=1&pageSize=5  # Buy transactions with
     "currentValue": 1852.00
   }
 ]
-```
-
-### Stock Cost Basis
-```json
-{
-  "userId": 1,
-  "totalCost": 3250.75
-}
 ```
 
 ### Buy/Sell Response
@@ -202,39 +257,52 @@ GET /api/user/1/transactions?type=buy&page=1&pageSize=5  # Buy transactions with
 }
 ```
 
-### Held Stocks
-```json
-{
-  "success": true,
-  "symbols": ["AAPL", "MSFT", "GOOGL"]
-}
-```
-
 ## Key Features
 
-- **Real-time Trading**: Buy/sell stocks at current market prices
-- **Portfolio Management**: Track assets with cost basis and current values
-- **Transaction History**: Complete audit trail of all trades with pagination support
-- **Asset Accumulation**: Adding duplicate assets accumulates quantities
-- **Weighted Average**: Stock cost basis calculated automatically
-- **Cash Management**: USD cash balance updated with trades
-- **Paginated Queries**: Transaction history supports page-based browsing
+- **Secure Authentication**: Password encryption with bcrypt and session management
+- **Real-time Trading**: Buy/sell stocks at current market prices with live price fetching
+- **Portfolio Management**: Track assets with automatic cost basis and current value calculation
+- **Transaction History**: Complete audit trail of all trades with advanced filtering and pagination
+- **Asset Accumulation**: Adding duplicate assets automatically accumulates quantities
+- **Weighted Average**: Stock cost basis calculated automatically using weighted average method
+- **Cash Management**: USD cash balance updated automatically with trades
+- **Database Transactions**: All trading operations are atomic to ensure data consistency
+- **Connection Pool**: MySQL connection pooling for optimal performance
 
-## Testing Setup
+## Dependencies
 
-**User Management**: User registration/login endpoints are not implemented yet. For testing:
+The project uses the following main dependencies:
+- **express**: Web framework
+- **mysql2**: MySQL database driver with promise support
+- **bcrypt**: Password encryption
+- **node-fetch**: HTTP client for API calls (built-in for Node.js 18+)
 
-1. Insert a test user into database like:
-   ```sql
-   INSERT INTO users (username, email, password) VALUES ('testuser', 'test@example.com', 'password123');
-   ```
-2. Use `userId = 1` in all API calls that require user ID
+## Error Handling
+
+The API includes comprehensive error handling for:
+- Invalid user credentials
+- Insufficient balance for trades
+- Stock symbol not found
+- Database connection errors
+- API rate limits and timeouts
 
 ## Notes
-- Stock prices fetched in real-time from Twelve Data API
-- All trades require sufficient cash/stock balance
-- Transactions are atomic (database transactions)
-- Only USD cash currently supported
-- User authentication system pending implementation
+
+- Stock prices are fetched in real-time from Twelve Data API
+- All trades require sufficient cash/stock balance validation
+- Transactions use database-level atomic operations
+- Currently supports USD cash only
+- Free Twelve Data API tier includes rate limits
+- All endpoints return consistent JSON responses with proper HTTP status codes
+
+## Frontend Integration
+
+The system includes HTML frontend pages located in the `public/` directory:
+- `index.html` - Home page
+- `login.html` - User authentication
+- `stock.html` - Stock search and quotes
+- `trading.html` - Buy/sell interface
+- `records.html` - Transaction history
+- `assetdashboard.html` - Portfolio overview
 
 ---

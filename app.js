@@ -22,7 +22,7 @@ const port = 3000;
 const db = mysql.createPool({
   host: 'localhost',
   user: 'root',
-  password: 'root',
+  password: 'gtly30jcio',
   database: 'portfolio_manager',
   waitForConnections: true,
   connectionLimit: 10,
@@ -82,12 +82,13 @@ const TWELVE_DATA_API_KEY = '43230254888343009b1591f9b3c06f5e'; // Replace with 
 const TWELVE_DATA_BASE_URL = 'https://api.twelvedata.com';
 
 
-//-------------regist&login------------
+//------------- User API endpoints ------------
 
-//加密
+// Encrypt
 import bcrypt from 'bcrypt';
 const saltRounds = 10;
 
+// User Register
 app.post('/api/register', async (req, res) => {
   const { username, email, password } = req.body;
 
@@ -109,6 +110,7 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
+// User Login
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -243,9 +245,6 @@ app.get('/api/stock/search/:keywords', async (req, res) => {
     });
   }
 });
-
-// ---------- User API endpoints ----------
-// TODO: Add user registration, login, and logout endpoints
 
 // ---------- Asset API endpoints ----------
 // Add existing asset to the user's portfolio (not buy)
@@ -584,9 +583,7 @@ app.get('/api/user/:userId/assets/:asset_type/:symbol', async (req, res) => {
   }
 });
 
-//查询交易记录
-// 查询用户的交易记录
-//改为分页查询
+// Query transaction history (paged)
 app.get('/api/user/:userId/transactions', async (req, res) => {
   try {
     const { userId } = req.params;
@@ -654,11 +651,11 @@ app.get('/api/user/:userId/transactions', async (req, res) => {
   }
 });
 
-//交易——买入
-// 如果 Node 版本 <18，需引入 node-fetch
+// Transaction - buy
+// If Node version <18，need import node-fetch
 // const fetch = require('node-fetch');
 
-//fetch 实时价格函数
+// Function to fetch real-time stock price
 async function fetchPrice(symbol) {
   const res = await fetch(`http://localhost:3000/api/stock/quote/${symbol}`);
   if (!res.ok) return null;
@@ -666,7 +663,7 @@ async function fetchPrice(symbol) {
   return parseFloat(data.close);
 }
 
-// 买入接口
+// Buy API
 app.post('/api/user/:userId/buy', async (req, res) => {
   const { userId } = req.params;
   let { symbol, quantity } = req.body;
@@ -754,7 +751,7 @@ app.post('/api/user/:userId/buy', async (req, res) => {
   } 
 });
 
-//卖出操作
+// Sell API
 app.post('/api/user/:userId/sell', async (req, res) => {
   const { userId } = req.params;
   let { symbol, quantity } = req.body;
@@ -835,7 +832,7 @@ app.post('/api/user/:userId/sell', async (req, res) => {
   } 
 });
 
-//下拉列表获取已有股票
+// List stock holdings for sell
 app.get('/api/user/:userId/held-stocks', async (req, res) => {
   const { userId } = req.params;
   try {
