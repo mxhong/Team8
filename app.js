@@ -86,12 +86,19 @@ const TWELVE_DATA_BASE_URL = 'https://api.twelvedata.com';
 app.get('/api/stock/quote/:symbol', async (req, res) => {
   try {
     const { symbol } = req.params;
+    console.log(`API request received for symbol: ${symbol}`);
+    
     const url = `${TWELVE_DATA_BASE_URL}/quote?symbol=${symbol}&apikey=${TWELVE_DATA_API_KEY}`;
+    console.log(`Calling Twelve Data API: ${url}`);
     
     const response = await fetch(url);
+    console.log(`Twelve Data API response status: ${response.status}`);
+    
     const data = await response.json();
+    console.log(`Twelve Data API response data:`, data);
     
     if (data.code && data.status === 'error') {
+      console.error(`Twelve Data API error: ${data.message}`);
       return res.status(data.code).json({ 
         error: 'API request failed',
         details: data.message
@@ -99,9 +106,11 @@ app.get('/api/stock/quote/:symbol', async (req, res) => {
     }
     
     if (!data.symbol) {
+      console.error('No symbol found in API response');
       return res.status(404).json({ error: 'Stock data not found' });
     }
     
+    console.log(`Successfully returning data for ${symbol}`);
     // Return original API response
     res.json(data);
     
