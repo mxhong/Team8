@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock Details - AssetPro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'stock-red': '#ff4d4f',
+            'stock-green': '#52c41a',
+            'light-gray': '#f5f5f5',
+            'mid-gray': '#e8e8e8',
+            'dark-gray': '#8c8c8c',
+            'nav-active': '#fff7f7'
+          },
+        },
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    body {
+      @apply bg-white text-gray-800;
+    }
+    .sidebar {
+      @apply w-64 bg-light-gray border-r border-mid-gray h-screen fixed;
+    }
+    .main-content {
+      @apply ml-64 p-6;
+    }
+    .card {
+      @apply bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-100;
+    }
+    .chart-container {
+      height: 350px;
+    }
+    .tab-active {
+      @apply border-b-2 border-stock-green text-stock-green font-semibold;
+    }
+    .stock-change.rise {
+      @apply text-stock-green;
+    }
+    .stock-change.fall {
+      @apply text-stock-red;
+    }
+    .stat-card {
+      @apply bg-light-gray p-4 rounded-lg border border-mid-gray;
+    }
+    .indicator-card {
+      @apply bg-light-gray p-4 rounded-lg;
+    }
+    .market-card {
+      @apply bg-light-gray p-4 rounded-lg;
+    }
+    .btn-interval {
+      @apply px-3 py-1 rounded-md text-sm transition-colors;
+    }
+    .back-button {
+      @apply inline-flex items-center px-4 py-2 bg-stock-red text-white rounded-lg hover:bg-red-600 transition-colors;
+    }
+    .nav-active {
+      background-color: #fff7f7;
+      border-left: 4px solid #ff4d4f;
+    }
+  </style>
+</head>
+<body class="bg-[#f8f9fa] text-gray-800">
+  <!-- Sidebar -->
+  <aside class="w-64 bg-[#f8f9fa] border-r border-[#eee] flex flex-col justify-between fixed h-screen">
+    <div>
+      <div class="p-6 border-b border-[#eee]">
+        <h1 class="text-2xl font-extrabold text-[#d32f2f] tracking-wide">AssetPro</h1>
+      </div>
+      <nav class="p-4">
+        <ul class="space-y-2">
+                        <li>
+                <a href="home.html" class="flex items-center p-3 rounded-lg transition-colors font-medium text-gray-700 hover:bg-white hover:text-[#d32f2f]">
+                  <i class="fa fa-home mr-3"></i>
+                  Home
+                </a>
+              </li>
+              <li>
+                <a href="assetdashboard.html" class="flex items-center p-3 rounded-lg transition-colors font-medium text-gray-700 hover:bg-white hover:text-[#d32f2f]">
+                  <i class="fa fa-briefcase mr-3"></i>
+                  My Holdings
+                </a>
+              </li>
+          <li>
+            <a href="stock.html" class="flex items-center p-3 rounded-lg transition-colors font-medium text-[#d32f2f] bg-[#fff7f7] border-l-4 border-[#d32f2f] shadow-sm">
+              <i class="fa fa-line-chart mr-3"></i>
+              Stock Market
+            </a>
+          </li>
+          <li>
+            <a href="trading.html" class="flex items-center p-3 rounded-lg transition-colors font-medium text-gray-700 hover:bg-white hover:text-[#d32f2f]">
+              <i class="fa fa-exchange mr-3"></i>
+              Trading Center
+            </a>
+          </li>
+          <li>
+            <a href="records.html" class="flex items-center p-3 rounded-lg transition-colors font-medium text-gray-700 hover:bg-white hover:text-[#d32f2f]">
+              <i class="fa fa-history mr-3"></i>
+              Trading Records
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+    <div class="p-4 border-t border-[#eee]">
+      <div class="flex flex-col items-start gap-2 w-full">
+                  <span class="text-gray-700 text-sm font-medium"><i class="fa fa-user-circle mr-2"></i><span id="username">team8demo</span></span>
+          <button id="logout-btn" class="px-4 py-1 bg-[#d32f2f] text-white rounded hover:bg-red-700 text-sm w-full">Logout</button>
+      </div>
+    </div>
+  </aside>
+  
+  <!-- Main Content Area -->
+  <main class="ml-64 min-h-screen bg-[#f8f9fa] p-8">
+    <!-- Back Button -->
+    <div class="mb-6 flex items-start">
+      <a href="stock.html" class="inline-flex items-center px-4 py-2 bg-[#d32f2f] text-white rounded hover:bg-red-700 font-medium transition-colors">
+        <i class="bi bi-arrow-left mr-2"></i> Back to Stock Market
+      </a>
+    </div>
+    <!-- Stock Basic Info Card -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6 border border-gray-100">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+        <div class="mb-4 md:mb-0">
+          <h1 class="text-2xl font-bold text-[#d32f2f]" id="stock-symbol">AAPL</h1>
+          <p class="text-gray-600" id="stock-name">Apple Inc.</p>
+        </div>
+        <div class="text-right">
+          <p class="text-3xl font-bold text-[#222]" id="stock-price">$164.92</p>
+          <p class="text-sm" id="stock-change" class="stock-change fall">-4.76 (-2.80%)</p>
+        </div>
+      </div>
+      <!-- Stat Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
+        <div class="bg-[#f8f9fa] p-4 rounded-lg border border-[#eee]">
+          <p class="text-gray-600 mb-2">Today's High</p>
+          <p class="text-lg font-bold text-[#222]" id="today-high">$192.67</p>
+        </div>
+        <div class="bg-[#f8f9fa] p-4 rounded-lg border border-[#eee]">
+          <p class="text-gray-600 mb-2">Today's Low</p>
+          <p class="text-lg font-bold text-[#222]" id="today-low">$164.92</p>
+        </div>
+        <div class="bg-[#f8f9fa] p-4 rounded-lg border border-[#eee]">
+          <p class="text-gray-600 mb-2">Average Price</p>
+          <p class="text-lg font-bold text-[#222]" id="avg-price">$184.19</p>
+        </div>
+      </div>
+    </div>
+    <!-- Line Chart + Time Interval Switch -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6 border border-gray-100">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+        <h2 class="text-xl font-bold text-[#222] mb-4 md:mb-0">Price Trend</h2>
+        <div class="flex space-x-2 bg-[#f8f9fa] p-1 rounded-lg">
+          <button id="1min-tab" class="btn-interval" onclick="switchInterval('1min')">1 Minute</button>
+          <button id="1h-tab" class="btn-interval" onclick="switchInterval('1h')">1 Hour</button>
+          <button id="1day-tab" class="btn-interval" onclick="switchInterval('1day')">1 Day</button>
+          <button id="1week-tab" class="btn-interval" onclick="switchInterval('1week')">1 Week</button>
+          <button id="1month-tab" class="btn-interval" onclick="switchInterval('1month')">1 Month</button>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="price-chart"></canvas>
+      </div>
+    </div>
+    <!-- Technical Indicators + Market Observation -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Technical Indicators -->
+      <div class="bg-white rounded-lg shadow p-6 border border-gray-100">
+        <h3 class="text-lg font-bold mb-4 text-[#222]">Technical Indicators</h3>
+        <div class="mb-4">
+          <p class="text-gray-600">Support Level</p>
+          <p class="text-lg font-bold text-[#222]" id="support-level">$164.92</p>
+        </div>
+        <div class="mb-4">
+          <p class="text-gray-600">Resistance Level</p>
+          <p class="text-lg font-bold text-[#d32f2f]" id="resistance-level">$192.67</p>
+        </div>
+        <div class="mb-4">
+          <p class="text-gray-600">Average Volume</p>
+          <p class="text-lg font-bold text-[#222]" id="avg-volume">-</p>
+        </div>
+      </div>
+      <!-- Market Observation -->
+      <div class="bg-white rounded-lg shadow p-6 border border-gray-100">
+        <h3 class="text-lg font-bold mb-4 text-[#222]">Market Observation</h3>
+        <div class="p-4 bg-[#f0f6fa] rounded-lg mb-4" id="market-observation">
+          <p class="text-stock-red font-bold mb-2">Significant Decline</p>
+          <p class="text-sm text-gray-600">Stock price has dropped significantly, need to carefully evaluate fundamental changes</p>
+        </div>
+        <div class="p-4 bg-[#fff7f7] rounded-lg">
+          <p class="text-[#d32f2f] font-bold mb-2">Risk Warning</p>
+          <p class="text-sm text-gray-700">The stock market is risky, so be cautious when investing. The above analysis is for reference only and does not constitute investment advice.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script>
+    let stockSymbol = null;
+    let chart = null;
+    let currentInterval = '1day'; // Default interval
+        window.onload = () => {
+      // Check login status
+      checkLoginStatus();
+      
+      const params = new URLSearchParams(window.location.search);
+      stockSymbol = params.get('symbol');
+      if (!stockSymbol) {
+        alert('Please select a stock from the stock market page');
+        window.location.href = 'stock.html';
+        return;
+      }
+      loadStockInfo(stockSymbol);
+      loadChartData(stockSymbol, currentInterval);
+      
+      // Set default active tab
+      document.getElementById('1day-tab').classList.add('tab-active');
+    };
+    async function loadStockInfo(symbol) {
+      try {
+        // Call backend API to get stock basic information
+        const response = await fetch(`/api/stock/quote/${symbol}`);
+        if (!response.ok) throw new Error('API error');
+        const data = await response.json();
+        
+        // Fill basic information
+        document.getElementById('stock-symbol').textContent = data.symbol || symbol;
+        document.getElementById('stock-name').textContent = data.name || data.description || '-';
+        document.getElementById('stock-price').textContent = `$${parseFloat(data.close || data.price).toFixed(2)}`;
+        
+        // Calculate change and percentage
+        const change = parseFloat(data.change || 0);
+        const percent = parseFloat(data.percent_change || 0);
+        const changeElement = document.getElementById('stock-change');
+        
+        if (change > 0) {
+          changeElement.textContent = `+${change.toFixed(2)} (+${percent.toFixed(2)}%)`;
+          changeElement.classList.add('rise');
+          changeElement.classList.remove('fall');
+        } else {
+          changeElement.textContent = `${change.toFixed(2)} (${percent.toFixed(2)}%)`;
+          changeElement.classList.add('fall');
+          changeElement.classList.remove('rise');
+        }
+        
+        // Other data
+        document.getElementById('today-high').textContent = `$${parseFloat(data.high || data.close).toFixed(2)}`;
+        document.getElementById('today-low').textContent = `$${parseFloat(data.low || data.close).toFixed(2)}`;
+        document.getElementById('avg-price').textContent = `$${parseFloat(data.close || data.price).toFixed(2)}`;
+        
+        // Technical indicators
+        document.getElementById('support-level').textContent = `$${parseFloat(data.low || data.close).toFixed(2)}`;
+        document.getElementById('resistance-level').textContent = `$${parseFloat(data.high || data.close).toFixed(2)}`;
+        
+        // Average volume
+        document.getElementById('avg-volume').textContent = data.average_volume ? data.average_volume : (data.volume ? data.volume : '-');
+        
+        // Market observation
+        const marketObs = document.getElementById('market-observation');
+        if (change < -2) {
+          marketObs.innerHTML = `
+            <p class="text-stock-red font-bold mb-2">Significant Decline</p>
+            <p class="text-sm text-gray-600">Stock price has dropped significantly, need to carefully evaluate fundamental changes</p>
+          `;
+          marketObs.className = 'p-4 bg-red-50 rounded-lg mb-4';
+        } else if (change > 2) {
+          marketObs.innerHTML = `
+            <p class="text-stock-green font-bold mb-2">Significant Rise</p>
+            <p class="text-sm text-gray-600">Stock price has risen strongly, pay attention to breakthrough signals</p>
+          `;
+          marketObs.className = 'p-4 bg-green-50 rounded-lg mb-4';
+        } else {
+          marketObs.innerHTML = `
+            <p class="text-blue-500 font-bold mb-2">Stable Market</p>
+            <p class="text-sm text-gray-600">Stock price is relatively stable with moderate volatility</p>
+          `;
+          marketObs.className = 'p-4 bg-blue-50 rounded-lg mb-4';
+        }
+      } catch (error) {
+        console.error('Failed to load stock information:', error);
+        alert('Loading failed, please try again');
+        window.location.href = 'stock.html';
+      }
+    }
+    async function loadChartData(symbol, interval) {
+      try {
+        // Call backend API to get time series data
+        const response = await fetch(`/api/stock/${symbol}?interval=${interval}&outputsize=60`);
+        if (!response.ok) throw new Error('API error');
+        const data = await response.json();
+        
+        if (!data.values || data.values.length === 0) {
+          console.error('No chart data available');
+          return;
+        }
+        
+        const values = data.values || [];
+        const labels = values.map(item => formatTime(item.datetime, interval));
+        const prices = values.map(item => parseFloat(item.close));
+        
+        if (chart) chart.destroy();
+        const ctx = document.getElementById('price-chart').getContext('2d');
+        const isRise = prices[0] <= prices[prices.length - 1];
+        
+        chart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Closing Price',
+              data: prices,
+              borderColor: isRise ? '#52c41a' : '#ff4d4f',
+              backgroundColor: isRise ? 'rgba(82,196,26,0.1)' : 'rgba(255,77,79,0.1)',
+              borderWidth: 2,
+              fill: true,
+              tension: 0.2,
+              pointRadius: 0,
+              hoverRadius: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                mode: 'index',
+                intersect: false,
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                borderColor: isRise ? '#52c41a' : '#ff4d4f',
+                borderWidth: 1,
+                callbacks: {
+                  label: function(context) {
+                    return `Price: $${context.parsed.y.toFixed(2)}`;
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                display: true,
+                grid: { display: false },
+                ticks: { color: '#8c8c8c', maxTicksLimit: 8 }
+              },
+              y: {
+                display: true,
+                grid: { color: '#f0f0f0' },
+                ticks: {
+                  color: '#8c8c8c',
+                  callback: function(value) { return '$' + value.toFixed(2); }
+                }
+              }
+            },
+            interaction: { mode: 'nearest', axis: 'x', intersect: false }
+          }
+        });
+      } catch (error) {
+        console.error('Failed to load chart data:', error);
+      }
+    }
+    function switchInterval(interval) {
+      currentInterval = interval;
+      document.querySelectorAll('.btn-interval').forEach(btn => {
+        btn.classList.remove('tab-active');
+      });
+      document.getElementById(`${interval}-tab`).classList.add('tab-active');
+      loadChartData(stockSymbol, interval);
+    }
+    function formatTime(datetime, interval) {
+      const date = new Date(datetime);
+      if (interval === '1min') {
+        return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      } else if (interval === '1h') {
+        return date.toLocaleTimeString('en-US', { hour: '2-digit' });
+      } else if (interval === '1week') {
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      } else if (interval === '1month') {
+        return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      } else {
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      }
+    }
+    // Check login status
+    function checkLoginStatus() {
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      const userEmail = localStorage.getItem('userEmail');
+      
+      if (!isLoggedIn || !userEmail) {
+        // If not logged in, redirect to login page
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      // Update user information display
+      document.getElementById('username').textContent = userEmail;
+    }
+    
+    // Logout functionality
+    document.getElementById('logout-btn').addEventListener('click', function() {
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('isLoggedIn');
+      window.location.href = 'index.html';
+    });
+  </script>
+</body>
+</html>

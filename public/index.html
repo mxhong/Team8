@@ -1,62 +1,226 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>交易记录分页</title>
-</head>
-<body>
-  <h2>用户交易记录</h2>
-
-  <div>
-    <label>用户ID: <input type="number" id="userId" value="1"></label>
-    <label>每页条数: <input type="number" id="pageSize" value="10"></label>
-    <button onclick="loadTransactions(1)">加载第一页</button>
-  </div>
-
-  <div id="transactions"></div>
-
-  <div id="pagination" style="margin-top: 20px;"></div>
-
+<!-- The home page before logging in  -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AssetPro - Smart Investing, Simplified</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
   <script>
-    let currentPage = 1;
-    let totalPages = 1;
-
-    async function loadTransactions(page) {
-      const userId = document.getElementById('userId').value;
-      const pageSize = document.getElementById('pageSize').value;
-
-      const url = `http://localhost:3000/api/user/${userId}/transactions?page=${page}&pageSize=${pageSize}`;
-
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-
-        const container = document.getElementById('transactions');
-        container.innerHTML = '<h3>交易记录:</h3><ul>' + data.transactions.map(tx => `
-          <li>
-            <b>${tx.symbol}</b> - ${tx.type} - 数量: ${tx.quantity} - 价格: ¥${tx.price} - 时间: ${new Date(tx.timestamp).toLocaleString()}
-          </li>
-        `).join('') + '</ul>';
-
-        // 分页信息
-        currentPage = data.page;
-        totalPages = Math.ceil(data.total / data.pageSize);
-
-        renderPagination();
-
-      } catch (err) {
-        alert('请求失败：' + err.message);
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'primary': '#d32f2f',
+            'primary-light': '#ff4d4f',
+            'secondary': '#52c41a',
+            'light-gray': '#f5f5f5',
+            'mid-gray': '#e8e8e8',
+            'dark-gray': '#8c8c8c',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
       }
     }
-
-    function renderPagination() {
-      const pagination = document.getElementById('pagination');
-      pagination.innerHTML = `
-        <button onclick="loadTransactions(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>上一页</button>
-        <span> 第 ${currentPage} 页 / 共 ${totalPages} 页 </span>
-        <button onclick="loadTransactions(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>下一页</button>
-      `;
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .card-shadow {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+      .hover-lift {
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .hover-lift:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+      }
+      .gradient-bg {
+        background: linear-gradient(135deg, #d32f2f 0%, #ff4d4f 100%);
+      }
+      .hero-bg {
+        background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect width="1200" height="600" fill="%23f8f9fa"/><circle cx="200" cy="150" r="50" fill="%23ff4d4f" opacity="0.1"/><circle cx="1000" cy="450" r="80" fill="%23d32f2f" opacity="0.1"/><rect x="300" y="200" width="600" height="200" fill="%23ffffff" opacity="0.8"/></svg>');
+        background-size: cover;
+        background-position: center;
+      }
     }
+  </style>
+</head>
+  <body class="bg-white font-sans">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-4">
+          <div class="flex items-center">
+            <div class="flex items-center space-x-2">
+              <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <div class="flex space-x-1">
+                  <div class="w-1 h-3 bg-white rounded"></div>
+                  <div class="w-1 h-5 bg-white rounded"></div>
+                  <div class="w-1 h-7 bg-white rounded"></div>
+        </div>
+      </div>
+              <span class="text-xl font-bold text-gray-900">AssetPro</span>
+        </div>
+      </div>
+          <div class="flex items-center space-x-4">
+            <span id="userInfo" class="text-gray-600 hidden">
+              <i class="fa fa-user-circle mr-2"></i>
+              <span id="username">team8demo</span>
+            </span>
+            <button id="logoutBtn" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-light transition-colors hidden">
+              Logout
+            </button>
+            <div id="loginButtons">
+              <a href="login.html" class="text-gray-600 hover:text-primary transition-colors">Login</a>
+              <a href="login.html" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-light transition-colors ml-4">
+                Get Started
+              </a>
+            </div>
+          </div>
+        </div>
+          </div>
+    </header>
+
+  <!-- Hero Section -->
+  <section class="hero-bg py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div id="welcomeSection">
+        <h1 class="text-5xl font-bold text-gray-900 mb-6">
+          Smart Investing, Simplified
+        </h1>
+        <p class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+          Take Control Of Your Investments With Our Comprehensive Platform. Track Portfolios, Analyze Market Trends, And Execute Trades All In One Place.
+        </p>
+        <div class="flex justify-center space-x-4">
+          <a href="login.html" class="bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors flex items-center">
+            Get Started →
+          </a>
+          <a href="#features" class="border border-primary text-primary px-6 py-3 rounded-lg hover:bg-primary hover:text-white transition-colors">
+            Learn More
+          </a>
+          </div>
+          </div>
+      
+      <div id="dashboardSection" class="hidden">
+        <h1 class="text-5xl font-bold text-gray-900 mb-6">
+          Welcome Back!
+        </h1>
+        <p class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+          Manage your investment portfolio and track market dynamics with our comprehensive platform.
+        </p>
+        <div class="flex justify-center space-x-4">
+                            <a href="home.html" class="bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors flex items-center">
+                    Go to Dashboard →
+                  </a>
+          <a href="stock.html" class="border border-primary text-primary px-6 py-3 rounded-lg hover:bg-primary hover:text-white transition-colors">
+            View Stock Market
+          </a>
+        </div>
+      </div>
+          </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Portfolio Management Card -->
+        <div class="bg-white rounded-xl shadow-lg p-8 hover-lift border border-gray-100 flex flex-col items-center">
+          <div class="w-16 h-16 bg-primary rounded-lg flex items-center justify-center mb-6 mx-auto transform rotate-180">
+            <div class="flex space-x-1">
+              <div class="w-2 h-4 bg-white rounded"></div>
+              <div class="w-2 h-6 bg-white rounded"></div>
+              <div class="w-2 h-8 bg-white rounded"></div>
+            </div>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-4 text-center">Portfolio Management</h3>
+          <p class="text-gray-600 text-center leading-relaxed">
+            Comprehensive view of your investments including total assets, cash balance, and stock holdings.
+          </p>
+          <div class="mt-6 text-center w-full flex justify-center">
+            <a href="assetdashboard.html" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors w-40 justify-center">
+              <i class="fa fa-arrow-right mr-2"></i>
+              View Portfolio
+            </a>
+          </div>
+        </div>
+
+        <!-- Easy Trading Card -->
+        <div class="bg-white rounded-xl shadow-lg p-8 hover-lift border border-gray-100 flex flex-col items-center">
+          <div class="w-16 h-16 bg-primary rounded-lg flex items-center justify-center mb-6 mx-auto">
+            <i class="fa fa-line-chart text-white text-2xl"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-4 text-center">Easy Trading</h3>
+          <p class="text-gray-600 text-center leading-relaxed">
+            Execute buy and sell orders safely with our simulated trading environment.
+          </p>
+          <div class="mt-6 text-center w-full flex justify-center">
+            <a href="trading.html" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors w-40 justify-center">
+              <i class="fa fa-arrow-right mr-2"></i>
+              Start Trading
+            </a>
+          </div>
+        </div>
+
+        <!-- Real-time Market Data Card -->
+        <div class="bg-white rounded-xl shadow-lg p-8 hover-lift border border-gray-100 flex flex-col items-center">
+          <div class="w-16 h-16 bg-primary rounded-lg flex items-center justify-center mb-6 mx-auto">
+            <!-- 折线图icon -->
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <polyline points="4,24 12,16 20,22 28,10" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="4" cy="24" r="2" fill="white"/>
+              <circle cx="12" cy="16" r="2" fill="white"/>
+              <circle cx="20" cy="22" r="2" fill="white"/>
+              <circle cx="28" cy="10" r="2" fill="white"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-4 text-center">Real-time Market Data</h3>
+          <p class="text-gray-600 text-center leading-relaxed">
+            Stay updated with live stock prices and market movements to make informed decisions.
+          </p>
+          <div class="mt-6 text-center w-full flex justify-center">
+            <a href="stock.html" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors w-40 justify-center">
+              <i class="fa fa-arrow-right mr-2"></i>
+              View Market
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-gray-200 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <p class="text-gray-500">© 2025 AssetPro. Demo Version</p>
+  </div>
+  </footer>
+
+  <script>
+    // Check login status on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      const userEmail = localStorage.getItem('userEmail');
+      
+      if (isLoggedIn && userEmail) {
+        // User is logged in, show dashboard content
+        document.getElementById('welcomeSection').classList.add('hidden');
+        document.getElementById('dashboardSection').classList.remove('hidden');
+        document.getElementById('userInfo').classList.remove('hidden');
+        document.getElementById('logoutBtn').classList.remove('hidden');
+        document.getElementById('loginButtons').classList.add('hidden');
+        document.getElementById('username').textContent = userEmail;
+      }
+    });
+    
+    // Logout functionality
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('isLoggedIn');
+      
+      // Refresh the page to show login state
+      window.location.reload();
+    });
   </script>
 </body>
 </html>
