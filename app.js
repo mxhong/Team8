@@ -22,8 +22,8 @@ const port = 3000;
 const db = mysql.createPool({
   host: 'localhost',
   user: 'root',
-  password: 'gtly30jcio',
-  database: 'portfolio_manager',
+  password: '19971104',
+  database: 'profileAPP',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
@@ -80,6 +80,100 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Twelve Data API configuration
 const TWELVE_DATA_API_KEY = '43230254888343009b1591f9b3c06f5e'; // Replace with your actual API key
 const TWELVE_DATA_BASE_URL = 'https://api.twelvedata.com';
+
+
+//-------------regist&login------------
+
+//加密
+import bcrypt from 'bcrypt';
+const saltRounds = 10;
+
+app.post('/api/register', async (req, res) => {
+  const { username, email, password } = req.body;
+
+  try {
+    const [rows] = await db.execute('SELECT * FROM users WHERE username = ? OR email = ?', [username, email]);
+    if (rows.length > 0) {
+      return res.status(409).json({ code: 409, msg: '用户名已存在' });
+    }
+
+    // 对密码进行加密
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    await db.execute('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', [username, email, hashedPassword]);
+
+    res.json({ code: 200, msg: '注册成功' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ code: 500, msg: '注册失败' });
+  }
+});
+
+
+//
+// app.post('/api/register', async (req, res) => {
+//   const { username, email, password } = req.body;
+//   try {
+//     const [rows] = await db.query('SELECT id FROM users WHERE username = ? OR email = ?', [username, email]);
+//     if (rows.length > 0) {
+//       return res.status(400).json({ message: '用户名或邮箱已存在' });
+//     }
+
+//     const [result] = await db.query(
+//       'INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
+//       [username, email, password]
+//     );
+//     res.json({ message: '注册成功', userId: result.insertId });
+//   } catch (err) {
+//     res.status(500).json({ message: '注册失败', error: err.message });
+//   }
+// });
+
+app.post('/api/login', async (req, res) => {
+  const { username, password } = req.body;
+  try {
+    // 查询用户信息，包括加密后的密码
+    const [rows] = await db.query(
+      'SELECT id, username, password FROM users WHERE username = ?',
+      [username]
+    );
+
+    if (rows.length === 0) {
+      return res.status(401).json({ message: '用户名或密码错误' });
+    }
+
+    const user = rows[0];
+
+    // 用 bcrypt 验证密码是否匹配
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: '用户名或密码错误' });
+    }
+
+    res.json({ message: '登录成功', id: user.id, username: user.username });
+  } catch (err) {
+    res.status(500).json({ message: '登录失败', error: err.message });
+  }
+});
+
+// app.post('/api/login', async (req, res) => {
+//   const { username, password } = req.body;
+//   try {
+//     const [rows] = await db.query(
+//       'SELECT id, username FROM users WHERE username = ? AND password = ?',
+//       [username, password]
+//     );
+//     if (rows.length === 0) {
+//       return res.status(401).json({ message: '用户名或密码错误' });
+//     }
+
+//     const user = rows[0];
+//     res.json({ message: '登录成功', id: user.id, username: user.username });
+//   } catch (err) {
+//     res.status(500).json({ message: '登录失败', error: err.message });
+//   }
+// });
+
 
 // ---------- Stock API endpoints ----------
 // Get stock real-time quote
