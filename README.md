@@ -66,6 +66,7 @@ POST /api/user/{userId}/assets               # Add asset to portfolio
 GET  /api/user/{userId}/assets/details       # Get all assets with details
 GET  /api/user/{userId}/assets/cash          # Get total cash
 GET  /api/user/{userId}/assets/stocks        # Get total stock value
+GET  /api/user/{userId}/assets/stocks/cost   # Get total stock cost basis
 GET  /api/user/{userId}/assets/{asset_type}/{symbol}  # Get specific asset
 ```
 
@@ -84,6 +85,8 @@ GET  /api/user/{userId}/held-stocks          # Get list of owned stocks
 - `{keywords}` - Search keywords (e.g., Apple, Microsoft)
 - `interval` - Time interval: `1min`, `5min`, `1day`, etc.
 - `outputsize` - Number of data points (e.g., 30, 100)
+- `page` - Page number for pagination (default: 1)
+- `pageSize` - Records per page (default: 10)
 
 ## Request Examples
 
@@ -137,9 +140,10 @@ Content-Type: application/json
 
 ### Get Transaction History
 ```bash
-GET /api/user/1/transactions                 # All transactions
-GET /api/user/1/transactions?symbol=AAPL     # Specific stock
-GET /api/user/1/transactions?type=buy        # Buy transactions only
+GET /api/user/1/transactions                 # All transactions (first page)
+GET /api/user/1/transactions?page=2&pageSize=20  # Page 2, 20 records per page
+GET /api/user/1/transactions?symbol=AAPL     # Specific stock (first page)
+GET /api/user/1/transactions?type=buy&page=1&pageSize=5  # Buy transactions with pagination
 ```
 
 ## Response Examples
@@ -159,6 +163,14 @@ GET /api/user/1/transactions?type=buy        # Buy transactions only
 ]
 ```
 
+### Stock Cost Basis
+```json
+{
+  "userId": 1,
+  "totalCost": 3250.75
+}
+```
+
 ### Buy/Sell Response
 ```json
 {
@@ -170,11 +182,13 @@ GET /api/user/1/transactions?type=buy        # Buy transactions only
 }
 ```
 
-### Transaction History
+### Transaction History (Paginated)
 ```json
 {
   "userId": 1,
-  "total": 10,
+  "total": 25,
+  "page": 1,
+  "pageSize": 10,
   "transactions": [
     {
       "id": 1,
@@ -200,10 +214,11 @@ GET /api/user/1/transactions?type=buy        # Buy transactions only
 
 - **Real-time Trading**: Buy/sell stocks at current market prices
 - **Portfolio Management**: Track assets with cost basis and current values
-- **Transaction History**: Complete audit trail of all trades
+- **Transaction History**: Complete audit trail of all trades with pagination support
 - **Asset Accumulation**: Adding duplicate assets accumulates quantities
 - **Weighted Average**: Stock cost basis calculated automatically
 - **Cash Management**: USD cash balance updated with trades
+- **Paginated Queries**: Transaction history supports page-based browsing
 
 ## Testing Setup
 

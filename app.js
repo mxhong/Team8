@@ -355,10 +355,32 @@ app.get('/api/user/:userId/assets/cash', async (req, res) => {
     const [result] = await db.execute('SELECT SUM(quantity) as total_cash FROM assets WHERE user_id = ? AND asset_type = "cash"', [userId]);
     res.json({
       userId: parseInt(userId),
-      totalCash: result[0].total_cash || 0
+      totalCash: Math.round((result[0].total_cash || 0) * 100) / 100
     });
   } catch (error) {
     console.error('Failed to get cash:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: error.message 
+    });
+  }
+});
+
+// Get total stock cost for a user
+app.get('/api/user/:userId/assets/stocks/cost', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const [assets] = await db.execute('SELECT * FROM assets WHERE user_id = ? AND asset_type = "stock"', [userId]);
+    let totalCost = 0;
+    for (const asset of assets) {
+      totalCost += parseFloat(asset.quantity) * parseFloat(asset.average_price);
+    }
+    res.json({
+      userId: parseInt(userId),
+      totalCost: Math.round(totalCost * 100) / 100
+    });
+  } catch (error) {
+    console.error('Failed to get total stock cost:', error);
     res.status(500).json({ 
       error: 'Internal server error',
       details: error.message 
@@ -500,28 +522,47 @@ app.get('/api/user/:userId/assets/details', async (req, res) => {
 
 //查询交易记录
 // 查询用户的交易记录
+//改为分页查询
 app.get('/api/user/:userId/transactions', async (req, res) => {
   try {
     const { userId } = req.params;
-    const { symbol, type } = req.query;
+    //默认一页十个
+    const { symbol, type, page = 1, pageSize = 10 } = req.query;
 
+    
+    const pageInt = Number.isNaN(Number(page)) ? 1 : Number(page);
+    const pageSizeInt = Number.isNaN(Number(pageSize)) ? 10 : Number(pageSize);
+    const offset = (pageInt - 1) * pageSizeInt;
+
+    // 构建基本查询和参数
     let baseQuery = 'SELECT * FROM transactions WHERE user_id = ?';
-    const queryParams = [userId];
+    const baseParams = [Number(userId)];
 
     if (symbol) {
       baseQuery += ' AND symbol = ?';
-      queryParams.push(symbol.toUpperCase());
+      baseParams.push(symbol.toUpperCase());
     }
 
     if (type && ['buy', 'sell'].includes(type)) {
       baseQuery += ' AND type = ?';
-      queryParams.push(type);
+      baseParams.push(type);
     }
 
-    baseQuery += ' ORDER BY timestamp DESC';
+    // 总数查询语句
+    const countQuery = `SELECT COUNT(*) AS total FROM (${baseQuery}) AS countTable`;
+    const [countRows] = await db.execute(countQuery, baseParams);
+    const total = countRows[0].total;
+    console.log(`Total transactions for user ${userId}: ${total}`);
 
-    const [rows] = await db.execute(baseQuery, queryParams);
+    // 数据分页查询语句
+   // 拼接分页SQL，LIMIT 和 OFFSET 直接拼字符串（注意安全：pageSizeInt 和 offset 都是Number类型，且是经过parseInt的）
+    const paginatedQuery = `${baseQuery} ORDER BY timestamp DESC LIMIT ${pageSizeInt} OFFSET ${offset}`;
 
+    //测试数值
+    // console.log({ pageInt, pageSizeInt, offset, dataParams });
+    const [rows] = await db.execute(paginatedQuery, baseParams);
+
+    // 格式化结果
     const formatted = rows.map(tx => ({
       id: tx.id,
       symbol: tx.symbol,
@@ -531,9 +572,12 @@ app.get('/api/user/:userId/transactions', async (req, res) => {
       timestamp: tx.timestamp
     }));
 
+    // 返回响应
     res.json({
       userId: parseInt(userId),
-      total: formatted.length,
+      total,
+      page: pageInt,
+      pageSize: pageSizeInt,
       transactions: formatted
     });
 
