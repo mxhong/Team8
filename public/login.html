@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - AssetPro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'primary': '#d32f2f',
+            'primary-light': '#ff4d4f',
+            'secondary': '#52c41a',
+            'light-gray': '#f5f5f5',
+            'mid-gray': '#e8e8e8',
+            'dark-gray': '#8c8c8c',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .gradient-bg {
+        background: linear-gradient(135deg, #d32f2f 0%, #ff4d4f 100%);
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 font-sans">
+  <!-- Login Page -->
+  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-white">
+    <div class="max-w-md w-full space-y-8 p-8">
+      <div class="text-center">
+        <div class="flex items-center justify-center mb-4">
+          <div class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mr-3">
+            <div class="flex space-x-1">
+              <div class="w-1 h-3 bg-white rounded"></div>
+              <div class="w-1 h-5 bg-white rounded"></div>
+              <div class="w-1 h-7 bg-white rounded"></div>
+            </div>
+          </div>
+          <h1 class="text-3xl font-extrabold text-primary">AssetPro</h1>
+        </div>
+        <p class="text-dark-gray text-lg">Personal Asset Management System</p>
+      </div>
+      
+      <div class="bg-white rounded-xl shadow-lg p-8">
+        <div class="text-center mb-8">
+          <h2 class="text-2xl font-bold text-gray-900">Welcome Back</h2>
+          <p class="text-gray-600 mt-2">Please sign in to your account</p>
+        </div>
+        
+        <form id="loginForm" class="space-y-6">
+          <div>
+            <label for="username" class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+            <input type="text" id="username" name="username" required
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              placeholder="Enter your username">
+          </div>
+          
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+            <input type="password" id="password" name="password" required
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              placeholder="Enter your password">
+          </div>
+          
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <input type="checkbox" id="remember" class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+              <label for="remember" class="ml-2 block text-sm text-gray-700">Remember me</label>
+            </div>
+            <a href="#" class="text-sm text-primary hover:text-primary-light">Forgot password?</a>
+          </div>
+          
+          <button type="submit" 
+            class="w-full gradient-bg text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 transition-opacity">
+            Sign In
+          </button>
+        </form>
+        
+        <div class="mt-6 text-center">
+          <p class="text-sm text-gray-600">
+            Don't have an account? 
+            <a href="#" class="text-primary hover:text-primary-light font-medium">Sign up</a>
+          </p>
+        </div>
+        
+        <div class="mt-6 text-center">
+          <a href="index.html" class="text-sm text-gray-500 hover:text-gray-700">
+            ← Back to Home
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Login form handling
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      
+      // Validate specified user credentials
+      if (username === 'team8demo' && password === 'team8demo') {
+        // Login successful
+        localStorage.setItem('userEmail', username);
+        localStorage.setItem('isLoggedIn', 'true');
+        
+        // Redirect to dashboard
+                        window.location.href = 'home.html';
+      } else {
+        alert('Invalid username or password. Please use team8demo / team8demo');
+      }
+    });
+  </script>
+</body>
+</html> 

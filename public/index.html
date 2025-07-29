@@ -3,22 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>股票首页</title>
+  <title>AssetPro - Smart Investing, Simplified</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
-  <!-- Tailwind 配置 -->
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            'stock-red': '#ff4d4f',
-            'stock-green': '#52c41a',
+            'primary': '#d32f2f',
+            'primary-light': '#ff4d4f',
+            'secondary': '#52c41a',
             'light-gray': '#f5f5f5',
             'mid-gray': '#e8e8e8',
             'dark-gray': '#8c8c8c',
-            'nav-active': '#fff7f7'
           },
           fontFamily: {
             sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -29,9 +27,6 @@
   </script>
   <style type="text/tailwindcss">
     @layer utilities {
-      .content-auto {
-        content-visibility: auto;
-      }
       .card-shadow {
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
       }
@@ -42,348 +37,168 @@
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
       }
-      .nav-active {
-        background-color: #fff7f7;
-        border-left: 4px solid #ff4d4f;
+      .gradient-bg {
+        background: linear-gradient(135deg, #d32f2f 0%, #ff4d4f 100%);
       }
-      .search-popup {
-        top: 140px;
-        max-height: calc(100vh - 160px);
-        border: 2px solid #ff4d4f;
-        box-shadow: 0 8px 32px rgba(255, 77, 79, 0.15);
-      }
-      .search-popup-header {
-        background: linear-gradient(135deg, #fff7f7 0%, #ffffff 100%);
-        border-bottom: 2px solid #ff4d4f;
+      .hero-bg {
+        background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect width="1200" height="600" fill="%23f8f9fa"/><circle cx="200" cy="150" r="50" fill="%23ff4d4f" opacity="0.1"/><circle cx="1000" cy="450" r="80" fill="%23d32f2f" opacity="0.1"/><rect x="300" y="200" width="600" height="200" fill="%23ffffff" opacity="0.8"/></svg>');
+        background-size: cover;
+        background-position: center;
       }
     }
   </style>
 </head>
-<body class="bg-white font-sans text-gray-800">
-  <div class="flex h-screen overflow-hidden">
-    <!-- 侧边栏 -->
-    <aside class="w-64 bg-[#f8f9fa] border-r border-[#eee] flex flex-col justify-between fixed h-screen">
-      <div>
-        <div class="p-6 border-b border-[#eee]">
-          <h1 class="text-2xl font-extrabold text-[#d32f2f] tracking-wide">AssetPro</h1>
-        </div>
-        <nav class="p-4">
-          <ul class="space-y-2">
-            <li>
-              <a href="#" class="flex items-center p-3 rounded-lg transition-colors font-medium text-gray-700 hover:bg-white hover:text-[#d32f2f]">
-                <i class="fa fa-briefcase mr-3"></i>
-                My Holdings
-              </a>
-            </li>
-            <li>
-              <a href="#" class="flex items-center p-3 rounded-lg transition-colors font-medium text-[#d32f2f] bg-[#fff7f7] border-l-4 border-[#d32f2f] shadow-sm">
-                <i class="fa fa-line-chart mr-3"></i>
-                Stock Market
-              </a>
-            </li>
-            <li>
-              <a href="#" class="flex items-center p-3 rounded-lg transition-colors font-medium text-gray-700 hover:bg-white hover:text-[#d32f2f]">
-                <i class="fa fa-exchange mr-3"></i>
-                Trading Center
-              </a>
-            </li>
-            <li>
-              <a href="#" class="flex items-center p-3 rounded-lg transition-colors font-medium text-gray-700 hover:bg-white hover:text-[#d32f2f]">
-                <i class="fa fa-history mr-3"></i>
-                Trading Records
-              </a>
-            </li>
-          </ul>
-        </nav>
-      </div>
-      <div class="p-4 border-t border-[#eee]">
-        <div class="flex flex-col items-start gap-2 w-full">
-          <span class="text-gray-700 text-sm font-medium"><i class="fa fa-user-circle mr-2"></i>example@hsbc.com.cn</span>
-          <button id="logout-btn" class="px-4 py-1 bg-[#d32f2f] text-white rounded hover:bg-red-700 text-sm w-full">Logout</button>
+  <body class="bg-white font-sans">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-4">
+          <div class="flex items-center">
+            <div class="flex items-center space-x-2">
+              <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <div class="flex space-x-1">
+                  <div class="w-1 h-3 bg-white rounded"></div>
+                  <div class="w-1 h-5 bg-white rounded"></div>
+                  <div class="w-1 h-7 bg-white rounded"></div>
         </div>
       </div>
-    </aside>
-    <!-- 主内容区域 -->
-    <main class="flex-1 min-h-screen bg-[#f8f9fa] flex flex-col overflow-y-auto ml-64">
-      <div class="flex-1 flex flex-col px-12 py-8">
-        <div class="mb-6">
-          <h2 class="text-3xl font-extrabold text-[#222] mb-1">Stock Market</h2>
-          <p class="text-dark-gray mb-4 text-lg">Real-time Stock Quotes and Market Data</p>
-          <div class="relative max-w-2xl mb-6">
-            <input type="text" id="searchInput" placeholder="Search for Stock Symbol or Name..."
-              class="w-full py-3 px-5 pr-12 border border-mid-gray rounded-xl shadow focus:outline-none focus:ring-2 focus:ring-[#d32f2f]/30 text-lg">
-            <button id="searchButton" onclick="searchStock()"
-              class="absolute right-4 top-1/2 transform -translate-y-1/2 text-dark-gray hover:text-[#d32f2f] text-xl">
-              <i class="fa fa-search"></i>
+              <span class="text-xl font-bold text-gray-900">AssetPro</span>
+        </div>
+      </div>
+          <div class="flex items-center space-x-4">
+            <span id="userInfo" class="text-gray-600 hidden">
+              <i class="fa fa-user-circle mr-2"></i>
+              <span id="username">team8demo</span>
+            </span>
+            <button id="logoutBtn" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-light transition-colors hidden">
+              Logout
             </button>
-          </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div class="bg-white rounded-xl shadow p-6 flex flex-col items-start">
-            <span class="text-dark-gray text-lg">Rising Stocks</span>
-            <span class="text-stock-green text-2xl font-extrabold mt-2" id="riseCount">0</span>
-            <span class="mt-1 text-stock-green text-base flex items-center"><i class="fa fa-arrow-up mr-1"></i><span id="risePercent">0%</span></span>
-          </div>
-          <div class="bg-white rounded-xl shadow p-6 flex flex-col items-start">
-            <span class="text-dark-gray text-lg">Falling Stocks</span>
-            <span class="text-stock-red text-2xl font-extrabold mt-2" id="fallCount">0</span>
-            <span class="mt-1 text-stock-red text-base flex items-center"><i class="fa fa-arrow-down mr-1"></i><span id="fallPercent">0%</span></span>
-          </div>
-          <div class="bg-white rounded-xl shadow p-6 flex flex-col items-start">
-            <span class="text-gray-600 text-lg">Flat Stocks</span>
-            <span class="text-gray-700 text-2xl font-extrabold mt-2" id="flatCount">0</span>
-            <span class="mt-1 text-gray-600 text-base flex items-center"><i class="fa fa-minus mr-1"></i><span id="flatPercent">0%</span></span>
-          </div>
-        </div>
-        <div class="bg-white rounded-xl shadow p-6 mb-8">
-          <h3 class="text-xl font-bold mb-4">Popular Stocks</h3>
-          <div class="grid grid-cols-12 bg-light-gray py-3 px-4 font-medium text-dark-gray text-sm rounded-t-xl">
-            <div class="col-span-3">Symbol/Name</div>
-            <div class="col-span-2 text-right">Latest Price</div>
-            <div class="col-span-2 text-right">Change</div>
-            <div class="col-span-2 text-right">Open</div>
-            <div class="col-span-2 text-right">High</div>
-            <div class="col-span-1 text-right">Volume</div>
-          </div>
-          <div id="hotStocksList" class="divide-y divide-mid-gray">
-            <!-- 股票列表项将通过JavaScript动态生成 -->
-            <div class="py-4 px-4 text-center text-dark-gray">
-              <i class="fa fa-spinner fa-spin mr-2"></i>Loading Popular Stocks...
+            <div id="loginButtons">
+              <a href="login.html" class="text-gray-600 hover:text-primary transition-colors">Login</a>
+              <a href="login.html" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-light transition-colors ml-4">
+                Get Started
+              </a>
             </div>
           </div>
+        </div>
+          </div>
+    </header>
+
+  <!-- Hero Section -->
+  <section class="hero-bg py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div id="welcomeSection">
+        <h1 class="text-5xl font-bold text-gray-900 mb-6">
+          Smart Investing, Simplified
+        </h1>
+        <p class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+          Take Control Of Your Investments With Our Comprehensive Platform. Track Portfolios, Analyze Market Trends, And Execute Trades All In One Place.
+        </p>
+        <div class="flex justify-center space-x-4">
+          <a href="login.html" class="bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors flex items-center">
+            Get Started →
+          </a>
+          <a href="#features" class="border border-primary text-primary px-6 py-3 rounded-lg hover:bg-primary hover:text-white transition-colors">
+            Learn More
+          </a>
+          </div>
+          </div>
+      
+      <div id="dashboardSection" class="hidden">
+        <h1 class="text-5xl font-bold text-gray-900 mb-6">
+          Welcome Back!
+        </h1>
+        <p class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+          Manage your investment portfolio and track market dynamics with our comprehensive platform.
+        </p>
+        <div class="flex justify-center space-x-4">
+                            <a href="home.html" class="bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors flex items-center">
+                    Go to Dashboard →
+                  </a>
+          <a href="stock.html" class="border border-primary text-primary px-6 py-3 rounded-lg hover:bg-primary hover:text-white transition-colors">
+            View Stock Market
+          </a>
         </div>
       </div>
-      <!-- 搜索结果弹窗 -->
-      <div id="searchResultsPopup" class="fixed bg-gray-500 bg-opacity-50 flex items-start justify-center hidden z-20" style="left: -2cm; top: 1.5cm; right: 0; bottom: 0;">
-        <div class="bg-white p-6 rounded-lg shadow-xl relative w-full max-w-4xl max-h-[70vh] overflow-auto search-popup" style="border: none;">
-          <div class="flex justify-between items-center mb-4 sticky top-0 bg-white z-10 pb-2 search-popup-header">
-            <h3 class="text-lg font-bold text-stock-red">Search Results</h3>
-            <button onclick="closeSearchPopup()" class="text-gray-500 hover:text-stock-red transition-colors">
-              <i class="fa fa-times"></i>
-            </button>
           </div>
-          <div class="bg-white rounded-lg overflow-hidden card-shadow">
-            <div class="grid grid-cols-9 bg-light-gray py-2 px-4 font-medium text-dark-gray text-sm">
-              <div class="col-span-2">Symbol/Name</div>
-              <div class="col-span-1 text-right">Open</div>
-              <div class="col-span-1 text-right">High</div>
-              <div class="col-span-1 text-right">Low</div>
-              <div class="col-span-1 text-right">Close</div>
-              <div class="col-span-2 text-right">Change</div>
-            </div>
-            <div id="searchResultsList" class="divide-y divide-mid-gray">
-              <!-- 搜索结果将通过JavaScript动态生成 -->
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Portfolio Management -->
+        <div class="bg-white rounded-xl shadow-lg p-8 hover-lift">
+          <div class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mb-6">
+            <div class="flex space-x-1">
+              <div class="w-1 h-3 bg-white rounded"></div>
+              <div class="w-1 h-5 bg-white rounded"></div>
+              <div class="w-1 h-7 bg-white rounded"></div>
             </div>
           </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-4">Portfolio Management</h3>
+          <p class="text-gray-600">
+            Comprehensive view of your investments including total assets, cash balance, and stock holdings.
+          </p>
+        </div>
+
+        <!-- Easy Trading -->
+        <div class="bg-white rounded-xl shadow-lg p-8 hover-lift">
+          <div class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mb-6">
+            <i class="fa fa-line-chart text-white text-xl"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-4">Easy Trading</h3>
+          <p class="text-gray-600">
+            Execute buy and sell orders safely with our simulated trading environment.
+          </p>
+            </div>
+
+        <!-- Real-time Market Data -->
+        <div class="bg-white rounded-xl shadow-lg p-8 hover-lift">
+          <div class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mb-6">
+            <i class="fa fa-chart-line text-white text-xl"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-4">Real-time Market Data</h3>
+          <p class="text-gray-600">
+            Stay updated with live stock prices and market movements to make informed decisions.
+          </p>
         </div>
       </div>
-    </main>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-gray-200 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <p class="text-gray-500">© 2025 AssetPro. Demo Version</p>
   </div>
+  </footer>
 
   <script>
-    // 全局变量
-    let currentSymbol = null;
-    let stockChart = null;
-    let currentInterval = '1day';
-
-    // DOM 元素加载完成后执行
-    document.addEventListener('DOMContentLoaded', () => {
-      // 加载热门股票
-      loadHotStocks();
-      // 搜索框回车事件
-      document.getElementById('searchInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-          searchStock();
-        }
-      });
+    // Check login status on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      const userEmail = localStorage.getItem('userEmail');
+      
+      if (isLoggedIn && userEmail) {
+        // User is logged in, show dashboard content
+        document.getElementById('welcomeSection').classList.add('hidden');
+        document.getElementById('dashboardSection').classList.remove('hidden');
+        document.getElementById('userInfo').classList.remove('hidden');
+        document.getElementById('logoutBtn').classList.remove('hidden');
+        document.getElementById('loginButtons').classList.add('hidden');
+        document.getElementById('username').textContent = userEmail;
+      }
     });
-
-    // 加载热门股票
-    async function loadHotStocks() {
-      // 热门股票列表 - 实际应用中可以从API获取
-      const hotSymbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'META', 'NVDA', 'BABA'];
-      const hotStocksList = document.getElementById('hotStocksList');
-      hotStocksList.innerHTML = '';
-      let riseCount = 0;
-      let fallCount = 0;
-      // 批量获取热门股票数据
-      for (const symbol of hotSymbols) {
-        try {
-          // 调用后端API获取真实股票数据
-          const response = await fetch(`/api/stock/quote/${symbol}`);
-          if (!response.ok) {
-            console.error(`Failed to get data for ${symbol}:`, response.status);
-            continue;
-          }
-          const data = await response.json();
-          
-          // 使用真实API数据
-          const stockData = {
-            symbol: data.symbol || symbol,
-            name: data.name || data.description || getStockName(symbol),
-            price: data.close || data.price,
-            change: data.change,
-            percent_change: data.percent_change,
-            open: data.open,
-            high: data.high,
-            volume: data.volume
-          };
-          
-          // 计算上涨下跌数量
-          if (parseFloat(stockData.change) > 0) riseCount++;
-          else if (parseFloat(stockData.change) < 0) fallCount++;
-          
-          // 创建股票列表项
-          const stockItem = createStockListItem(stockData);
-          hotStocksList.appendChild(stockItem);
-          
-        } catch (error) {
-          console.error(`Failed to get data for ${symbol}:`, error);
-          // 如果API调用失败，显示错误信息
-          const errorItem = document.createElement('div');
-          errorItem.className = 'grid grid-cols-12 py-3 px-4 text-center text-dark-gray';
-          errorItem.innerHTML = `
-            <div class="col-span-12">
-              <span class="font-medium">${symbol}</span>
-              <span class="text-sm text-red-500 ml-2">Failed to load data</span>
-            </div>
-          `;
-          hotStocksList.appendChild(errorItem);
-        }
-      }
-      // 更新市场概览数据
-      document.getElementById('riseCount').textContent = riseCount;
-      document.getElementById('fallCount').textContent = fallCount;
-      document.getElementById('flatCount').textContent = hotSymbols.length - riseCount - fallCount;
-      // 计算百分比
-      const total = hotSymbols.length;
-      document.getElementById('risePercent').textContent = ((riseCount / total) * 100).toFixed(1) + '%';
-      document.getElementById('fallPercent').textContent = ((fallCount / total) * 100).toFixed(1) + '%';
-      document.getElementById('flatPercent').textContent = (((total - riseCount - fallCount) / total) * 100).toFixed(1) + '%';
-    }
-
-    // 获取股票名称的辅助函数
-    function getStockName(symbol) {
-      const stockNames = {
-        'AAPL': 'Apple Inc.',
-        'MSFT': 'Microsoft Corporation',
-        'GOOGL': 'Alphabet Inc.',
-        'AMZN': 'Amazon.com Inc.',
-        'TSLA': 'Tesla Inc.',
-        'META': 'Meta Platforms Inc.',
-        'NVDA': 'NVIDIA Corporation',
-        'BABA': 'Alibaba Group Holding Limited'
-      };
-      return stockNames[symbol] || symbol;
-    }
-
-    // 创建股票列表项
-    function createStockListItem(stockData) {
-      const isRise = parseFloat(stockData.change) >= 0;
-      const changeClass = isRise ? 'text-stock-green' : 'text-stock-red';
-      const changeIcon = isRise ? 'fa-arrow-up' : 'fa-arrow-down';
-      const item = document.createElement('div');
-      item.className = 'grid grid-cols-12 py-3 px-4 hover:bg-light-gray transition-colors hover-lift cursor-pointer';
-      // 点击股票项跳转到详情页
-      item.onclick = () => {
-        window.location.href = `stock-detail.html?symbol=${stockData.symbol}`;
-      };
+    
+    // Logout functionality
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('isLoggedIn');
       
-      // 格式化数值，保留两位小数
-      const formatPrice = (value) => {
-        if (!value || isNaN(value)) return '-';
-        return `$${parseFloat(value).toFixed(2)}`;
-      };
-      
-      const formatChange = (change, percent) => {
-        if (!change || isNaN(change)) return '-';
-        const changeValue = parseFloat(change);
-        const percentValue = parseFloat(percent);
-        const sign = changeValue >= 0 ? '+' : '';
-        const percentSign = percentValue >= 0 ? '+' : '';
-        return `${sign}${changeValue.toFixed(2)} (${percentSign}${percentValue.toFixed(2)}%)`;
-      };
-      
-      item.innerHTML = `
-        <div class="col-span-3 flex flex-col">
-          <span class="font-medium">${stockData.symbol}</span>
-          <span class="text-sm text-dark-gray">${stockData.name || '-'}</span>
-        </div>
-        <div class="col-span-2 flex items-center justify-end font-medium">${formatPrice(stockData.price)}</div>
-        <div class="col-span-2 flex items-center justify-end ${changeClass}">
-          <i class="fa ${changeIcon} mr-1 text-xs"></i>
-          ${formatChange(stockData.change, stockData.percent_change)}
-        </div>
-        <div class="col-span-2 flex items-center justify-end">${formatPrice(stockData.open)}</div>
-        <div class="col-span-2 flex items-center justify-end">${formatPrice(stockData.high)}</div>
-        <div class="col-span-1 flex items-center justify-end text-sm text-dark-gray">
-          ${stockData.volume ? formatNumber(stockData.volume) : '-'}
-        </div>
-      `;
-      return item;
-    }
-
-    // 搜索股票
-    async function searchStock() {
-      const keywords = document.getElementById('searchInput').value.trim();
-      if (!keywords) return;
-      const searchResultsList = document.getElementById('searchResultsList');
-      searchResultsList.innerHTML = '';
-      try {
-        // 调用后端API获取股票信息
-        const response = await fetch(`/api/stock/quote/${encodeURIComponent(keywords)}`);
-        if (!response.ok) {
-          throw new Error('Stock not found');
-        }
-        const data = await response.json();
-        document.getElementById('searchResultsPopup').classList.remove('hidden');
-        // 只展示open、high、low、close
-        searchResultsList.innerHTML = `
-          <div class="grid grid-cols-9 py-3 px-4 hover:bg-light-gray transition-colors hover-lift cursor-pointer" id="search-stock-item">
-            <div class="col-span-2 flex flex-col">
-              <span class="font-medium">${data.symbol || '-'}</span>
-              <span class="text-sm text-dark-gray">${data.name || data.description || '-'}</span>
-            </div>
-            <div class="col-span-1 flex items-center justify-end font-medium">$${parseFloat(data.open).toFixed(2) || '-'}</div>
-            <div class="col-span-1 flex items-center justify-end font-medium">$${parseFloat(data.high).toFixed(2) || '-'}</div>
-            <div class="col-span-1 flex items-center justify-end font-medium">$${parseFloat(data.low).toFixed(2) || '-'}</div>
-            <div class="col-span-1 flex items-center justify-end font-medium">$${parseFloat(data.close || data.price).toFixed(2) || '-'}</div>
-            <div class="col-span-2 flex items-center justify-end font-medium">
-              <span class="${parseFloat(data.change) >= 0 ? 'text-stock-green' : 'text-stock-red'}">
-                <i class="fa ${parseFloat(data.change) >= 0 ? 'fa-arrow-up' : 'fa-arrow-down'} mr-1 text-xs"></i>
-                ${data.change ? (parseFloat(data.change) >= 0 ? '+' : '') + parseFloat(data.change).toFixed(2) : '-'}
-                (${data.percent_change ? (parseFloat(data.percent_change) >= 0 ? '+' : '') + parseFloat(data.percent_change).toFixed(2) + '%' : '-'})
-              </span>
-            </div>
-          </div>
-        `;
-        // 点击跳转到详情页
-        const itemDiv = document.getElementById('search-stock-item');
-        if (itemDiv) {
-          itemDiv.onclick = () => {
-            window.location.href = `stock-detail.html?symbol=${data.symbol}`;
-          };
-        }
-      } catch (error) {
-        document.getElementById('searchResultsPopup').classList.remove('hidden');
-        searchResultsList.innerHTML = `
-          <div class="py-6 px-4 text-center text-dark-gray">
-            No matching stocks found for "${keywords}"
-          </div>
-        `;
-      }
-    }
-
-    // 关闭搜索结果弹窗
-    function closeSearchPopup() {
-      document.getElementById('searchResultsPopup').classList.add('hidden');
-    }
-
-    // 工具函数：格式化数字（添加千位分隔符）
-    function formatNumber(num) {
-      if (!num) return '0';
-      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    }
+      // Refresh the page to show login state
+      window.location.reload();
+    });
   </script>
 </body>
 </html>

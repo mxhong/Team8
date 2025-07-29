@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stock Details - Asset Management</title>
+  <title>Stock Details - AssetPro</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
   <script>
     tailwind.config = {
       theme: {
@@ -78,26 +79,32 @@
       </div>
       <nav class="p-4">
         <ul class="space-y-2">
+                        <li>
+                <a href="home.html" class="flex items-center p-3 rounded-lg transition-colors font-medium text-gray-700 hover:bg-white hover:text-[#d32f2f]">
+                  <i class="fa fa-home mr-3"></i>
+                  Home
+                </a>
+              </li>
+              <li>
+                <a href="assetdashboard.html" class="flex items-center p-3 rounded-lg transition-colors font-medium text-gray-700 hover:bg-white hover:text-[#d32f2f]">
+                  <i class="fa fa-briefcase mr-3"></i>
+                  My Holdings
+                </a>
+              </li>
           <li>
-            <a href="index.html" class="flex items-center p-3 rounded-lg transition-colors font-medium text-gray-700 hover:bg-white hover:text-[#d32f2f]">
-              <i class="fa fa-briefcase mr-3"></i>
-              My Holdings
-            </a>
-          </li>
-          <li>
-            <a href="index.html" class="flex items-center p-3 rounded-lg transition-colors font-medium text-[#d32f2f] bg-[#fff7f7] border-l-4 border-[#d32f2f] shadow-sm">
+            <a href="stock.html" class="flex items-center p-3 rounded-lg transition-colors font-medium text-[#d32f2f] bg-[#fff7f7] border-l-4 border-[#d32f2f] shadow-sm">
               <i class="fa fa-line-chart mr-3"></i>
               Stock Market
             </a>
           </li>
           <li>
-            <a href="#" class="flex items-center p-3 rounded-lg transition-colors font-medium text-gray-700 hover:bg-white hover:text-[#d32f2f]">
+            <a href="trading.html" class="flex items-center p-3 rounded-lg transition-colors font-medium text-gray-700 hover:bg-white hover:text-[#d32f2f]">
               <i class="fa fa-exchange mr-3"></i>
               Trading Center
             </a>
           </li>
           <li>
-            <a href="#" class="flex items-center p-3 rounded-lg transition-colors font-medium text-gray-700 hover:bg-white hover:text-[#d32f2f]">
+            <a href="records.html" class="flex items-center p-3 rounded-lg transition-colors font-medium text-gray-700 hover:bg-white hover:text-[#d32f2f]">
               <i class="fa fa-history mr-3"></i>
               Trading Records
             </a>
@@ -107,8 +114,8 @@
     </div>
     <div class="p-4 border-t border-[#eee]">
       <div class="flex flex-col items-start gap-2 w-full">
-        <span class="text-gray-700 text-sm font-medium"><i class="fa fa-user-circle mr-2"></i>example@hsbc.com.cn</span>
-        <button id="logout-btn" class="px-4 py-1 bg-[#d32f2f] text-white rounded hover:bg-red-700 text-sm w-full">Logout</button>
+                  <span class="text-gray-700 text-sm font-medium"><i class="fa fa-user-circle mr-2"></i><span id="username">team8demo</span></span>
+          <button id="logout-btn" class="px-4 py-1 bg-[#d32f2f] text-white rounded hover:bg-red-700 text-sm w-full">Logout</button>
       </div>
     </div>
   </aside>
@@ -117,8 +124,8 @@
   <main class="ml-64 min-h-screen bg-[#f8f9fa] p-8">
     <!-- Back Button -->
     <div class="mb-6 flex items-start">
-      <a href="index.html" class="inline-flex items-center px-4 py-2 bg-[#d32f2f] text-white rounded hover:bg-red-700 font-medium transition-colors">
-        <i class="bi bi-arrow-left mr-2"></i> Return to Stock Market
+      <a href="stock.html" class="inline-flex items-center px-4 py-2 bg-[#d32f2f] text-white rounded hover:bg-red-700 font-medium transition-colors">
+        <i class="bi bi-arrow-left mr-2"></i> Back to Stock Market
       </a>
     </div>
     <!-- Stock Basic Info Card -->
@@ -201,50 +208,63 @@
     let stockSymbol = null;
     let chart = null;
     let currentInterval = '1day'; // Default interval
-    window.onload = () => {
+        window.onload = () => {
+      // Check login status
+      checkLoginStatus();
+      
       const params = new URLSearchParams(window.location.search);
       stockSymbol = params.get('symbol');
       if (!stockSymbol) {
-        alert('Please select a stock from the homepage');
-        window.location.href = 'index.html';
+        alert('Please select a stock from the stock market page');
+        window.location.href = 'stock.html';
         return;
       }
       loadStockInfo(stockSymbol);
       loadChartData(stockSymbol, currentInterval);
+      
+      // Set default active tab
+      document.getElementById('1day-tab').classList.add('tab-active');
     };
     async function loadStockInfo(symbol) {
       try {
-        // 调用后端API获取股票基本信息
+        // Call backend API to get stock basic information
         const response = await fetch(`/api/stock/quote/${symbol}`);
         if (!response.ok) throw new Error('API error');
         const data = await response.json();
-        // 填充基本信息
+        
+        // Fill basic information
         document.getElementById('stock-symbol').textContent = data.symbol || symbol;
         document.getElementById('stock-name').textContent = data.name || data.description || '-';
         document.getElementById('stock-price').textContent = `$${parseFloat(data.close || data.price).toFixed(2)}`;
-        // 涨跌幅
-        const change = parseFloat(data.change);
-        const percent = parseFloat(data.percent_change);
+        
+        // Calculate change and percentage
+        const change = parseFloat(data.change || 0);
+        const percent = parseFloat(data.percent_change || 0);
         const changeElement = document.getElementById('stock-change');
+        
         if (change > 0) {
-          changeElement.textContent = `+${change} (+${percent}%)`;
+          changeElement.textContent = `+${change.toFixed(2)} (+${percent.toFixed(2)}%)`;
           changeElement.classList.add('rise');
           changeElement.classList.remove('fall');
         } else {
-          changeElement.textContent = `${change} (${percent}%)`;
+          changeElement.textContent = `${change.toFixed(2)} (${percent.toFixed(2)}%)`;
           changeElement.classList.add('fall');
           changeElement.classList.remove('rise');
         }
-        // 其他数据
-        document.getElementById('today-high').textContent = `$${parseFloat(data.high).toFixed(2)}`;
-        document.getElementById('today-low').textContent = `$${parseFloat(data.low).toFixed(2)}`;
+        
+        // Other data
+        document.getElementById('today-high').textContent = `$${parseFloat(data.high || data.close).toFixed(2)}`;
+        document.getElementById('today-low').textContent = `$${parseFloat(data.low || data.close).toFixed(2)}`;
         document.getElementById('avg-price').textContent = `$${parseFloat(data.close || data.price).toFixed(2)}`;
-        // 技术指标
-        document.getElementById('support-level').textContent = `$${parseFloat(data.low).toFixed(2)}`;
-        document.getElementById('resistance-level').textContent = `$${parseFloat(data.high).toFixed(2)}`;
-        // 平均成交量
+        
+        // Technical indicators
+        document.getElementById('support-level').textContent = `$${parseFloat(data.low || data.close).toFixed(2)}`;
+        document.getElementById('resistance-level').textContent = `$${parseFloat(data.high || data.close).toFixed(2)}`;
+        
+        // Average volume
         document.getElementById('avg-volume').textContent = data.average_volume ? data.average_volume : (data.volume ? data.volume : '-');
-        // 市场观察
+        
+        // Market observation
         const marketObs = document.getElementById('market-observation');
         if (change < -2) {
           marketObs.innerHTML = `
@@ -268,21 +288,29 @@
       } catch (error) {
         console.error('Failed to load stock information:', error);
         alert('Loading failed, please try again');
-        window.location.href = 'index.html';
+        window.location.href = 'stock.html';
       }
     }
     async function loadChartData(symbol, interval) {
       try {
-        // 调用后端API获取K线数据
+        // Call backend API to get time series data
         const response = await fetch(`/api/stock/${symbol}?interval=${interval}&outputsize=60`);
         if (!response.ok) throw new Error('API error');
         const data = await response.json();
+        
+        if (!data.values || data.values.length === 0) {
+          console.error('No chart data available');
+          return;
+        }
+        
         const values = data.values || [];
         const labels = values.map(item => formatTime(item.datetime, interval));
         const prices = values.map(item => parseFloat(item.close));
+        
         if (chart) chart.destroy();
         const ctx = document.getElementById('price-chart').getContext('2d');
         const isRise = prices[0] <= prices[prices.length - 1];
+        
         chart = new Chart(ctx, {
           type: 'line',
           data: {
@@ -290,8 +318,8 @@
             datasets: [{
               label: 'Closing Price',
               data: prices,
-              borderColor: isRise ? '#d32f2f' : '#ff4d4f',
-              backgroundColor: isRise ? 'rgba(211,47,47,0.08)' : 'rgba(255,77,79,0.08)',
+              borderColor: isRise ? '#52c41a' : '#ff4d4f',
+              backgroundColor: isRise ? 'rgba(82,196,26,0.1)' : 'rgba(255,77,79,0.1)',
               borderWidth: 2,
               fill: true,
               tension: 0.2,
@@ -310,8 +338,13 @@
                 backgroundColor: 'rgba(0, 0, 0, 0.8)',
                 titleColor: '#fff',
                 bodyColor: '#fff',
-                borderColor: isRise ? '#d32f2f' : '#ff4d4f',
-                borderWidth: 1
+                borderColor: isRise ? '#52c41a' : '#ff4d4f',
+                borderWidth: 1,
+                callbacks: {
+                  label: function(context) {
+                    return `Price: $${context.parsed.y.toFixed(2)}`;
+                  }
+                }
               }
             },
             scales: {
@@ -351,16 +384,34 @@
       } else if (interval === '1h') {
         return date.toLocaleTimeString('en-US', { hour: '2-digit' });
       } else if (interval === '1week') {
-        return 'W' + date.getWeek ? date.getWeek() : '';
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       } else if (interval === '1month') {
         return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
       } else {
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       }
     }
-    document.getElementById('logout-btn').onclick = function() {
+    // Check login status
+    function checkLoginStatus() {
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      const userEmail = localStorage.getItem('userEmail');
+      
+      if (!isLoggedIn || !userEmail) {
+        // If not logged in, redirect to login page
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      // Update user information display
+      document.getElementById('username').textContent = userEmail;
+    }
+    
+    // Logout functionality
+    document.getElementById('logout-btn').addEventListener('click', function() {
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('isLoggedIn');
       window.location.href = 'index.html';
-    };
+    });
   </script>
 </body>
 </html>
