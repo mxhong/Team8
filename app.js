@@ -14,16 +14,16 @@ const port = 3000;
 // const db = await mysql.createConnection({
 //   host: 'localhost',
 //   user: 'root',
-//   password: '19971104', // set your password
-//   database: 'profileAPP',
+//   password: 'gtly30jcio', // set your password
+//   database: 'portfolio_manager',
 // });
 
 //创建数据库连接池
 const db = mysql.createPool({
   host: 'localhost',
   user: 'root',
-  password: '19971104',
-  database: 'profileAPP',
+  password: 'gtly30jcio',
+  database: 'portfolio_manager',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
@@ -94,7 +94,7 @@ app.post('/api/register', async (req, res) => {
   try {
     const [rows] = await db.execute('SELECT * FROM users WHERE username = ? OR email = ?', [username, email]);
     if (rows.length > 0) {
-      return res.status(409).json({ code: 409, msg: '用户名已存在' });
+      return res.status(409).json({ code: 409, msg: 'Username already exists' });
     }
 
     // 对密码进行加密
@@ -102,32 +102,12 @@ app.post('/api/register', async (req, res) => {
 
     await db.execute('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', [username, email, hashedPassword]);
 
-    res.json({ code: 200, msg: '注册成功' });
+    res.json({ code: 200, msg: 'Registration successful' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ code: 500, msg: '注册失败' });
+    res.status(500).json({ code: 500, msg: 'Registration failed' });
   }
 });
-
-
-//
-// app.post('/api/register', async (req, res) => {
-//   const { username, email, password } = req.body;
-//   try {
-//     const [rows] = await db.query('SELECT id FROM users WHERE username = ? OR email = ?', [username, email]);
-//     if (rows.length > 0) {
-//       return res.status(400).json({ message: '用户名或邮箱已存在' });
-//     }
-
-//     const [result] = await db.query(
-//       'INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
-//       [username, email, password]
-//     );
-//     res.json({ message: '注册成功', userId: result.insertId });
-//   } catch (err) {
-//     res.status(500).json({ message: '注册失败', error: err.message });
-//   }
-// });
 
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
@@ -139,7 +119,7 @@ app.post('/api/login', async (req, res) => {
     );
 
     if (rows.length === 0) {
-      return res.status(401).json({ message: '用户名或密码错误' });
+      return res.status(401).json({ message: 'Wrong username or password' });
     }
 
     const user = rows[0];
@@ -147,33 +127,14 @@ app.post('/api/login', async (req, res) => {
     // 用 bcrypt 验证密码是否匹配
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: '用户名或密码错误' });
+      return res.status(401).json({ message: 'Wrong username or password' });
     }
 
-    res.json({ message: '登录成功', id: user.id, username: user.username });
+    res.json({ message: 'Login successful', id: user.id, username: user.username });
   } catch (err) {
-    res.status(500).json({ message: '登录失败', error: err.message });
+    res.status(500).json({ message: 'Login failed', error: err.message });
   }
 });
-
-// app.post('/api/login', async (req, res) => {
-//   const { username, password } = req.body;
-//   try {
-//     const [rows] = await db.query(
-//       'SELECT id, username FROM users WHERE username = ? AND password = ?',
-//       [username, password]
-//     );
-//     if (rows.length === 0) {
-//       return res.status(401).json({ message: '用户名或密码错误' });
-//     }
-
-//     const user = rows[0];
-//     res.json({ message: '登录成功', id: user.id, username: user.username });
-//   } catch (err) {
-//     res.status(500).json({ message: '登录失败', error: err.message });
-//   }
-// });
-
 
 // ---------- Stock API endpoints ----------
 // Get stock real-time quote
@@ -379,69 +340,6 @@ app.post('/api/user/:userId/assets', async (req, res) => {
   }
 });
 
-// Get one specific asset for a user
-app.get('/api/user/:userId/assets/:asset_type/:symbol', async (req, res) => {
-  try {
-    const { userId, asset_type, symbol } = req.params;
-    const [assets] = await db.execute('SELECT * FROM assets WHERE user_id = ? AND asset_type = ? AND symbol = ?', [userId, asset_type, symbol]);
-    
-    if (assets.length === 0) {
-      return res.status(404).json({ error: 'Asset not found' });
-    }
-    
-    const asset = assets[0];
-    let currentValue = 0;
-    let currentPrice = 0;
-    
-    if (asset.asset_type === 'cash') {
-      // For cash, value equals quantity
-      currentValue = parseFloat(asset.quantity);
-      currentPrice = 1;
-    } else if (asset.asset_type === 'stock') {
-      // For stocks, get current price from API
-      try {
-        const url = `${TWELVE_DATA_BASE_URL}/quote?symbol=${asset.symbol}&apikey=${TWELVE_DATA_API_KEY}`;
-        const response = await fetch(url);
-        const stockData = await response.json();
-        
-        if (stockData.close) {
-          currentPrice = parseFloat(stockData.close);
-          currentValue = currentPrice * parseFloat(asset.quantity);
-        } else {
-          console.warn(`Failed to get price for ${asset.symbol}`);
-          currentPrice = 0;
-          currentValue = 0;
-        }
-      } catch (error) {
-        console.error(`Error fetching price for ${asset.symbol}:`, error);
-        currentPrice = 0;
-        currentValue = 0;
-      }
-    }
-    
-    const totalCost = parseFloat(asset.quantity) * parseFloat(asset.average_price);
-    
-    const assetDetail = {
-      assetType: asset.asset_type,
-      symbol: asset.symbol,
-      quantity: parseFloat(asset.quantity),
-      averagePrice: parseFloat(asset.average_price),
-      currentPrice: currentPrice,
-      totalCost: Math.round(totalCost * 100) / 100,
-      currentValue: Math.round(currentValue * 100) / 100
-    };
-    
-    res.json(assetDetail);
-    
-  } catch (error) {
-    console.error('Failed to get asset:', error);
-    res.status(500).json({ 
-      error: 'Internal server error',
-      details: error.message 
-    });
-  }
-});
-
 // Get total cash for a user
 app.get('/api/user/:userId/assets/cash', async (req, res) => {
   try {
@@ -607,6 +505,69 @@ app.get('/api/user/:userId/assets/details', async (req, res) => {
     
   } catch (error) {
     console.error('Failed to get assets details:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: error.message 
+    });
+  }
+});
+
+// Get one specific asset for a user
+app.get('/api/user/:userId/assets/:asset_type/:symbol', async (req, res) => {
+  try {
+    const { userId, asset_type, symbol } = req.params;
+    const [assets] = await db.execute('SELECT * FROM assets WHERE user_id = ? AND asset_type = ? AND symbol = ?', [userId, asset_type, symbol]);
+    
+    if (assets.length === 0) {
+      return res.status(404).json({ error: 'Asset not found' });
+    }
+    
+    const asset = assets[0];
+    let currentValue = 0;
+    let currentPrice = 0;
+    
+    if (asset.asset_type === 'cash') {
+      // For cash, value equals quantity
+      currentValue = parseFloat(asset.quantity);
+      currentPrice = 1;
+    } else if (asset.asset_type === 'stock') {
+      // For stocks, get current price from API
+      try {
+        const url = `${TWELVE_DATA_BASE_URL}/quote?symbol=${asset.symbol}&apikey=${TWELVE_DATA_API_KEY}`;
+        const response = await fetch(url);
+        const stockData = await response.json();
+        
+        if (stockData.close) {
+          currentPrice = parseFloat(stockData.close);
+          currentValue = currentPrice * parseFloat(asset.quantity);
+        } else {
+          console.warn(`Failed to get price for ${asset.symbol}`);
+          currentPrice = 0;
+          currentValue = 0;
+        }
+      } catch (error) {
+        console.error(`Error fetching price for ${asset.symbol}:`, error);
+        currentPrice = 0;
+        currentValue = 0;
+      }
+    }
+    
+    const totalCost = parseFloat(asset.quantity) * parseFloat(asset.average_price);
+    
+    const assetDetail = {
+      assetType: asset.asset_type,
+      symbol: asset.symbol,
+      quantity: parseFloat(asset.quantity),
+      averagePrice: parseFloat(asset.average_price),
+      currentPrice: currentPrice,
+      totalCost: Math.round(totalCost * 100) / 100,
+      currentValue: Math.round(currentValue * 100) / 100
+    };
+    
+    res.json(assetDetail);
+    
+  } catch (error) {
+    console.error('Failed to get asset:', error);
     res.status(500).json({ 
       error: 'Internal server error',
       details: error.message 
