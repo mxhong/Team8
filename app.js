@@ -208,8 +208,8 @@ app.get("/api/stock/quote-finnhub/:symbol", async (req, res) => {
       });
     }
 
-    if (!data.symbol) {
-      console.error("No symbol found in API response");
+    if (!data.c) {
+      console.error("No current price found in API response");
       return res.status(404).json({ error: "Stock data not found" });
     }
 
