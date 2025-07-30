@@ -2,23 +2,17 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import mysql from 'mysql2/promise';
+import cors from 'cors';
 
 // Setting up directory
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+app.use(cors());
 const port = 3000;
 
-// MySQL connection config (adjust as needed)
-// const db = await mysql.createConnection({
-//   host: 'localhost',
-//   user: 'root',
-//   password: 'gtly30jcio', // set your password
-//   database: 'portfolio_manager',
-// });
-
-//创建数据库连接池
+// Create MySQL connection pool
 const db = mysql.createPool({
   host: 'localhost',
   user: 'root',
