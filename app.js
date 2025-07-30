@@ -16,7 +16,7 @@ const port = 3000;
 const db = mysql.createPool({
   host: "localhost",
   user: "root",
-  password: "sigrid123",
+  password: "gtly30jcio",
   database: "portfolio_manager",
   waitForConnections: true,
   connectionLimit: 10,
@@ -70,6 +70,10 @@ app.use(express.static(path.join(__dirname, "public")));
 // Twelve Data API configuration
 const TWELVE_DATA_API_KEY = "ec25a5bcfe4a40b892f70a7b576798cf"; // Replace with your actual API key
 const TWELVE_DATA_BASE_URL = "https://api.twelvedata.com";
+
+// Finnhub API configuration
+const FINN_HUB_API_KEY = "d20u51hr01qvvf1k587gd20u51hr01qvvf1k5880";
+const FINN_HUB_BASE_URL = "https://finnhub.io/api/v1";
 
 //------------- User API endpoints ------------
 
@@ -147,16 +151,16 @@ app.get("/api/stock/quote/:symbol", async (req, res) => {
     console.log(`API request received for symbol: ${symbol}`);
 
     const url = `${TWELVE_DATA_BASE_URL}/quote?symbol=${symbol}&apikey=${TWELVE_DATA_API_KEY}`;
-    console.log(`Calling Twelve Data API: ${url}`);
+    console.log(`Calling API: ${url}`);
 
     const response = await fetch(url);
-    console.log(`Twelve Data API response status: ${response.status}`);
+    console.log(`API response status: ${response.status}`);
 
     const data = await response.json();
-    console.log(`Twelve Data API response data:`, data);
+    console.log(`API response data:`, data);
 
     if (data.code && data.status === "error") {
-      console.error(`Twelve Data API error: ${data.message}`);
+      console.error(`API error: ${data.message}`);
       return res.status(data.code).json({
         error: "API request failed",
         details: data.message,
@@ -425,12 +429,12 @@ app.get("/api/user/:userId/assets/stocks", async (req, res) => {
       if (asset.asset_type === "stock") {
         // For stocks, get current price from API
         try {
-          const url = `${TWELVE_DATA_BASE_URL}/quote?symbol=${asset.symbol}&apikey=${TWELVE_DATA_API_KEY}`;
+          const url = `${FINN_HUB_BASE_URL}/quote?symbol=${asset.symbol}&token=${FINN_HUB_API_KEY}`;
           const response = await fetch(url);
           const stockData = await response.json();
 
-          if (stockData.close) {
-            const currentPrice = parseFloat(stockData.close);
+          if (stockData.c) {
+            const currentPrice = parseFloat(stockData.c);
             currentValue = currentPrice * parseFloat(asset.quantity);
           } else {
             console.warn(`Failed to get price for ${asset.symbol}`);
@@ -486,12 +490,12 @@ app.get("/api/user/:userId/assets/details", async (req, res) => {
       } else if (asset.asset_type === "stock") {
         // For stocks, get current price from API
         try {
-          const url = `${TWELVE_DATA_BASE_URL}/quote?symbol=${asset.symbol}&apikey=${TWELVE_DATA_API_KEY}`;
+          const url = `${FINN_HUB_BASE_URL}/quote?symbol=${asset.symbol}&token=${FINN_HUB_API_KEY}`;
           const response = await fetch(url);
           const stockData = await response.json();
 
-          if (stockData.close) {
-            currentPrice = parseFloat(stockData.close);
+          if (stockData.c) {
+            currentPrice = parseFloat(stockData.c);
             currentValue = currentPrice * parseFloat(asset.quantity);
           } else {
             console.warn(`Failed to get price for ${asset.symbol}`);
@@ -553,12 +557,12 @@ app.get("/api/user/:userId/assets/:asset_type/:symbol", async (req, res) => {
     } else if (asset.asset_type === "stock") {
       // For stocks, get current price from API
       try {
-        const url = `${TWELVE_DATA_BASE_URL}/quote?symbol=${asset.symbol}&apikey=${TWELVE_DATA_API_KEY}`;
+        const url = `${FINN_HUB_BASE_URL}/quote?symbol=${asset.symbol}&token=${FINN_HUB_API_KEY}`;
         const response = await fetch(url);
         const stockData = await response.json();
 
-        if (stockData.close) {
-          currentPrice = parseFloat(stockData.close);
+        if (stockData.c) {
+          currentPrice = parseFloat(stockData.c);
           currentValue = currentPrice * parseFloat(asset.quantity);
         } else {
           console.warn(`Failed to get price for ${asset.symbol}`);
@@ -667,10 +671,11 @@ app.get("/api/user/:userId/transactions", async (req, res) => {
 
 // Function to fetch real-time stock price
 async function fetchPrice(symbol) {
-  const res = await fetch(`http://localhost:3000/api/stock/quote/${symbol}`);
+  const url = `${FINN_HUB_BASE_URL}/quote?symbol=${symbol}&token=${FINN_HUB_API_KEY}`;
+  const res = await fetch(url);
   if (!res.ok) return null;
   const data = await res.json();
-  return parseFloat(data.close);
+  return parseFloat(data.c);
 }
 
 // Buy API
