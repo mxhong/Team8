@@ -1,5 +1,5 @@
 <!-- Trading  -->
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -9,4 +9,1536 @@
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
   <h1>Trading </h1>
  
-</html> 
+</html>  -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AssetPro - Trading System</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      :root {
+        --primary-red: #e63946;
+        --light-gray: #f8f9fa;
+        --medium-gray: #e9ecef;
+        --dark-gray: #6c757d;
+        --text-dark: #212529;
+      }
+
+      body {
+        background-color: var(--light-gray);
+        color: var(--text-dark);
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+      }
+
+      /* Main content area styles */
+      .main {
+        flex: 1;
+        padding: 40px;
+        transition: all 0.3s ease;
+        margin-left: 260px; /* 为固定侧边栏留出空间 */
+        overflow-y: auto;
+        max-width: calc(100vw - 260px); /* 限制最大宽度 */
+        min-height: 100vh;
+      }
+
+      .sidebar.collapsed ~ .main {
+        margin-left: 80px; /* 侧边栏折叠时调整主内容位置 */
+        max-width: calc(100vw - 80px);
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 9999px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.75rem;
+        line-height: 1rem;
+        font-weight: 600;
+        border: 1px solid transparent;
+      }
+      .badge-long {
+        background-color: rgb(220 252 231);
+        color: rgb(22 163 74);
+      }
+      .badge-short {
+        background-color: rgb(254 226 226);
+        color: rgb(220 38 38);
+      }
+      .badge-outline {
+        background-color: transparent;
+        border-color: rgb(229 231 235);
+        color: inherit;
+      }
+      .tab-active {
+        border-bottom: 2px solid var(--primary-red);
+        color: var(--primary-red);
+        font-weight: 600;
+      }
+      .order-type-active {
+        background-color: rgba(230, 57, 70, 0.1);
+        color: var(--primary-red);
+        border-color: var(--primary-red);
+      }
+      .nav-active {
+        background-color: rgba(230, 57, 70, 0.1);
+        color: var(--primary-red);
+      }
+      .transaction-row:hover {
+        background-color: #f9fafb;
+      }
+      .slider-container {
+        position: relative;
+        height: 4px;
+        background-color: #e5e7eb;
+        border-radius: 2px;
+        margin-top: 8px;
+      }
+      .slider-track {
+        position: absolute;
+        height: 100%;
+        background-color: var(--primary-red);
+        border-radius: 2px;
+      }
+      .slider-thumb {
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        background-color: white;
+        border: 2px solid var(--primary-red);
+        border-radius: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        cursor: pointer;
+      }
+      .search-container {
+        position: relative;
+      }
+      .search-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 4px;
+        max-height: 300px;
+        overflow-y: auto;
+        z-index: 10;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .search-result-item {
+        padding: 10px 12px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #f3f4f6;
+      }
+      .search-result-item:hover {
+        background-color: #f3f4f6;
+      }
+      .stock-select-container {
+        position: relative;
+      }
+      .stock-select-wrapper {
+        display: flex;
+        gap: 8px;
+      }
+      .stock-select {
+        flex: 1;
+      }
+      .percent-input {
+        position: relative;
+      }
+      .percent-input input {
+        padding-right: 40px;
+      }
+      .percent-input span {
+        position: absolute;
+        right: 3px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280;
+      }
+      .btn-group {
+        display: flex;
+        gap: 8px;
+      }
+      .btn-group button {
+        flex: 1;
+      }
+      .filter-btn-active {
+        background-color: rgba(230, 57, 70, 0.1);
+        color: var(--primary-red);
+        border-color: var(--primary-red);
+      }
+      .position-card {
+        transition: all 0.2s ease;
+      }
+      .position-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      }
+      .edit-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+      }
+      .edit-modal-content {
+        background-color: white;
+        padding: 24px;
+        border-radius: 8px;
+        width: 400px;
+        max-width: 90%;
+      }
+      .hidden {
+        display: none;
+      }
+      .linked-inputs {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .linked-inputs input {
+        flex: 1;
+      }
+      .linked-inputs span {
+        color: #6b7280;
+      }
+      .current-price {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--primary-red);
+      }
+      .price-change {
+        font-size: 0.875rem;
+        font-weight: 500;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.375rem;
+      }
+      .price-change.positive {
+        background-color: #dcfce7;
+        color: #166534;
+      }
+      .price-change.negative {
+        background-color: #fee2e2;
+        color: #b91c1c;
+      }
+      .stock-price-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+      }
+      .stock-price {
+        font-weight: 500;
+        font-size: 0.9rem;
+      }
+      .stock-change {
+        font-size: 0.8rem;
+        border-radius: 4px;
+        padding: 1px 5px;
+      }
+      .stock-change.positive {
+        background-color: #dcfce7;
+        color: #166534;
+      }
+      .stock-change.negative {
+        background-color: #fee2e2;
+        color: #b91c1c;
+      }
+      .stock-option-price {
+        margin-left: 8px;
+        font-size: 0.85rem;
+        color: #6b7280;
+      }
+
+      /* AssetPro specific styles */
+      .assetpro-header {
+        background-color: white;
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--medium-gray);
+      }
+
+      .assetpro-logo {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-red);
+      }
+
+      .assetpro-tagline {
+        font-size: 0.875rem;
+        color: var(--dark-gray);
+        margin-top: 0.25rem;
+      }
+
+      .feature-card {
+        background-color: white;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      }
+
+      .feature-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(230, 57, 70, 0.1);
+        border-radius: 50%;
+        margin-bottom: 1rem;
+        color: var(--primary-red);
+      }
+
+      .primary-btn {
+        background-color: var(--primary-red);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.375rem;
+        font-weight: 600;
+        transition: background-color 0.3s ease;
+      }
+
+      .primary-btn:hover {
+        background-color: #c1121f;
+      }
+
+      .secondary-btn {
+        background-color: white;
+        color: var(--primary-red);
+        border: 1px solid var(--primary-red);
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.375rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      .secondary-btn:hover {
+        background-color: rgba(230, 57, 70, 0.05);
+      }
+
+      .stat-card {
+        background-color: white;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      }
+
+      .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-red);
+      }
+
+      .stat-label {
+        font-size: 0.875rem;
+        color: var(--dark-gray);
+      }
+
+      .trade-card {
+        width: 100%;
+        max-width: 600px; /* 限制交易卡片最大宽度 */
+        min-width: 400px; /* 设置最小宽度保证可读性 */
+        padding: 2rem;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        transition: box-shadow 0.3s ease;
+      }
+
+      .trade-card:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      }
+
+      .footer {
+        background-color: white;
+        padding: 1.5rem;
+        border-top: 1px solid var(--medium-gray);
+        text-align: center;
+        color: var(--dark-gray);
+        font-size: 0.875rem;
+      }
+      .transaction-table {
+        table-layout: fixed;
+        width: 100%;
+      }
+
+      /* 响应式设计 */
+      @media (max-width: 1280px) {
+        .main {
+          padding: 30px;
+        }
+        
+        .trade-card {
+          max-width: none;
+          min-width: 350px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .main {
+          padding: 20px;
+          margin-left: 0;
+          margin-top: 60px;
+          max-width: 100vw;
+        }
+        
+        .sidebar.collapsed ~ .main {
+          margin-left: 0;
+          max-width: 100vw;
+        }
+        
+        .sidebar.expanded ~ .main {
+          margin-left: 0;
+          max-width: 100vw;
+        }
+        
+        /* 移动端优化 */
+        .grid {
+          grid-template-columns: 1fr;
+          gap: 20px;
+        }
+        
+        .trade-card {
+          min-width: auto;
+          max-width: none;
+          padding: 1.5rem;
+        }
+        
+        .price-display {
+          font-size: 1.5rem;
+        }
+        
+        .trading-panel .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .transaction-table {
+          font-size: 0.875rem;
+        }
+
+        .transaction-table th,
+        .transaction-table td {
+          padding: 0.5rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .main {
+          padding: 15px;
+        }
+        
+        .trade-card {
+          padding: 1rem;
+        }
+        
+        h1 {
+          font-size: 1.5rem;
+        }
+        
+        .flex.justify-between {
+          flex-direction: column;
+          gap: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <div id="sidebar-container"></div>
+    
+    <!-- Main Content Area -->
+    <div class="main">
+      <div class="flex justify-between items-center mb-6">
+            <div>
+              <h1 class="text-3xl font-bold text-gray-800">Trading System</h1>
+              <p class="text-gray-600 mt-2">
+                Buy and sell stocks, manage your investment portfolio
+              </p>
+            </div>
+            <!-- Optional: Add summary stats here -->
+            <div class="hidden lg:flex space-x-4">
+              <div class="bg-white p-4 rounded-lg shadow-sm border">
+                <div class="text-sm text-gray-500">Market Status</div>
+                <div class="text-lg font-semibold text-green-600">Open</div>
+              </div>
+            </div>
+          </div>
+              <!-- </div>
+                    <div class="flex space-x-2">
+                        <div class="stat-card">
+                            <div class="stat-label">Cash Balance</div>
+                            <div class="stat-value" id="cashBalance">¥120,160</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Position Value</div> -->
+              <!-- <div class="stat-value" id="positionValue">¥500</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Total Profit</div>
+                            <div class="stat-value" id="totalProfit">¥0</div>
+                        </div>
+                    </div>
+                </div> -->
+
+              <!-- Tabs -->
+              <div class="flex border-b mb-8 bg-white rounded-t-lg">
+                <button id="tradeTab" class="px-6 py-3 tab-active font-medium">
+                  Trade
+                </button>
+                <button id="historyTab" class="px-6 py-3 text-gray-500 font-medium hover:text-gray-700">
+                  History
+                </button>
+              </div>
+
+              <!-- Trading Panel -->
+              <div id="tradePanel">
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 justify-items-center">
+                  <!-- Buy Panel -->
+                  <div class="trade-card">
+                    <h2 class="text-xl font-semibold mb-4 text-green-600">Buy Stock</h2>
+                    <p class="text-sm text-gray-500 mb-6">
+                      Select stock and set buy parameters (Long)
+                    </p>
+
+                    <div class="space-y-4">
+                      <!-- <div class="stock-select-container">
+          <label class="block text-sm font-medium mb-1">Select Stock</label>
+          <div class="stock-select-wrapper">
+            <select id="buySelect" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 stock-select">
+              <option value="">Select a stock</option>
+              <option value="AAPL">AAPL - Apple Inc.</option>
+              <option value="MSFT">MSFT - Microsoft Corp.</option>
+              <option value="GOOGL">GOOGL - Alphabet Inc.</option>
+              <option value="TSLA">TSLA - Tesla Inc.</option>
+              <input type="hidden" id="selectedSymbol" />
+
+            </select>
+            <span class="text-gray-500 py-2">or</span>
+            <input type="text" id="buySearch" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Search stock">
+            <input type="hidden" id="searchedSymbol" />
+
+          </div>
+          <div id="buySearchResults" class="search-results hidden"></div>
+        </div> -->
+
+                      <div class="stock-select-container">
+                        <label class="block text-sm font-medium mb-1"
+                          >Select Stock</label
+                        >
+                        <div class="stock-select-wrapper relative">
+                          <input
+                            type="text"
+                            id="buySearch"
+                            list="stockOptions"
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                            placeholder="Search or select stock"
+                          />
+                          <datalist id="stockOptions">
+                            <option value="AAPL">AAPL - Apple Inc.</option>
+                            <option value="MSFT">MSFT - Microsoft Corp.</option>
+                            <option value="GOOGL">GOOGL - Alphabet Inc.</option>
+                            <option value="TSLA">TSLA - Tesla Inc.</option>
+                          </datalist>
+                          <input type="hidden" id="selectedSymbol" />
+                          <input type="hidden" id="searchedSymbol" />
+                        </div>
+                        <div
+                          id="buySearchResults"
+                          class="search-results hidden"
+                        ></div>
+                      </div>
+
+                      <div class="flex items-center justify-between">
+                        <div class="text-sm font-medium">Current Price</div>
+                        <div class="current-price" id="buyCurrentPrice">
+                          $0.00
+                        </div>
+                        <div class="price-change" id="buyPriceChange">
+                          +0.00%
+                        </div>
+                      </div>
+
+                      <div>
+                        <label class="block text-sm font-medium mb-1"
+                          >Quantity</label
+                        >
+                        <div class="relative">
+                          <input
+                            type="number"
+                            id="buyQuantity"
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                            placeholder="Enter quantity"
+                          />
+                          <div
+                            class="absolute right-3 top-2 text-sm text-gray-500"
+                          >
+                            shares
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        id="buyButton"
+                        class="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors font-medium"
+                      >
+                        Buy (Long)
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Sell Panel -->
+                  <div class="trade-card">
+                    <h2 class="text-xl font-semibold mb-4 text-red-600">Sell Stock</h2>
+                    <p class="text-sm text-gray-500 mb-6">
+                      Select stock and set sell parameters (Short)
+                    </p>
+
+                    <div class="space-y-4">
+                      <!-- <div class="stock-select-container">
+          <label class="block text-sm font-medium mb-1">Select Stock</label>
+          <div class="stock-select-wrapper">
+            <select id="sellSelect" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 stock-select">
+              <option value="">Select a stock</option>
+              <option value="AAPL">AAPL - Apple Inc.</option>
+              <option value="MSFT">MSFT - Microsoft Corp.</option>
+              <option value="GOOGL">GOOGL - Alphabet Inc.</option>
+              <option value="TSLA">TSLA - Tesla Inc.</option>
+            </select>
+            <span class="text-gray-500 py-2">or</span>
+            <input type="text" id="sellSearch" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Search stock">
+          </div>
+          <div id="sellSearchResults" class="search-results hidden"></div>
+        </div> -->
+
+                      <div class="stock-select-container">
+                        <label class="block text-sm font-medium mb-1"
+                          >Select Stock</label
+                        >
+                        <div class="stock-select-wrapper">
+                          <input
+                            type="text"
+                            id="sellSearch"
+                            list="sellStockOptions"
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                            placeholder="Search or select stock"
+                          />
+                          <datalist id="sellStockOptions">
+                            <option value="AAPL">AAPL - Apple Inc.</option>
+                            <option value="MSFT">MSFT - Microsoft Corp.</option>
+                            <option value="GOOGL">GOOGL - Alphabet Inc.</option>
+                            <option value="TSLA">TSLA - Tesla Inc.</option>
+                          </datalist>
+                        </div>
+                        <div
+                          id="sellSearchResults"
+                          class="search-results hidden"
+                        ></div>
+                      </div>
+
+                      <div class="flex items-center justify-between">
+                        <div class="text-sm font-medium">Current Price</div>
+                        <div class="current-price" id="sellCurrentPrice">
+                          $0.00
+                        </div>
+                        <div class="price-change" id="sellPriceChange">
+                          +0.00%
+                        </div>
+                      </div>
+
+                      <div>
+                        <label class="block text-sm font-medium mb-1"
+                          >Quantity</label
+                        >
+                        <div class="relative">
+                          <input
+                            type="number"
+                            id="sellQuantity"
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                            placeholder="Enter quantity"
+                          />
+                          <div
+                            class="absolute right-3 top-2 text-sm text-gray-500"
+                          >
+                            shares
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        id="sellButton"
+                        class="w-full py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors font-medium"
+                      >
+                        Sell (Short)
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- History Panel -->
+              <div id="historyPanel" class="hidden">
+                <div class="trade-card max-w-none">
+                  <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-6 gap-4">
+                    <div>
+                      <h2 class="text-xl font-semibold">Transaction History</h2>
+                      <p class="text-sm text-gray-500">
+                        View all your transaction history
+                      </p>
+                    </div>
+                    <div class="flex space-x-2">
+                      <button
+                        class="px-4 py-2 text-sm bg-blue-50 text-blue-600 rounded-lg filter-btn filter-btn-active transition-colors"
+                        data-filter="all"
+                      >
+                        All
+                      </button>
+                      <button
+                        class="px-4 py-2 text-sm bg-gray-100 rounded-lg filter-btn transition-colors hover:bg-gray-200"
+                        data-filter="buy"
+                      >
+                        Buy
+                      </button>
+                      <button
+                        class="px-4 py-2 text-sm bg-gray-100 rounded-lg filter-btn transition-colors hover:bg-gray-200"
+                        data-filter="sell"
+                      >
+                        Sell
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="overflow-x-auto">
+                    <table class="w-full transaction-table table-fixed">
+                      <thead>
+                        <tr class="bg-gray-50">
+                          <th
+                            class="w-1/6 px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Date
+                          </th>
+                          <th
+                            class="w-1/6 px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Symbol
+                          </th>
+                          <th
+                            class="w-1/6 px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Type
+                          </th>
+                          <th
+                            class="w-1/6 px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Quantity
+                          </th>
+                          <th
+                            class="w-1/6 px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Price
+                          </th>
+                          <th
+                            class="w-1/6 px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Amount
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody
+                        id="transactionTableBody"
+                        class="divide-y divide-gray-200"
+                      >
+                        <!-- 示例数据（可用 JS 动态填充） -->
+                        <tr class="transaction-row">
+                          <td class="px-4 py-3 whitespace-nowrap">
+                            2023-05-15
+                          </td>
+                          <td class="px-4 py-3 whitespace-nowrap font-medium">
+                            AAPL
+                          </td>
+                          <td class="px-4 py-3 whitespace-nowrap">
+                            <span class="badge badge-long text-green-600">
+                              <i
+                                data-lucide="trending-up"
+                                class="w-3 h-3 mr-1"
+                              ></i>
+                              Buy
+                            </span>
+                          </td>
+                          <td class="px-4 py-3 whitespace-nowrap text-right">
+                            100
+                          </td>
+                          <td class="px-4 py-3 whitespace-nowrap text-right">
+                            $170.00
+                          </td>
+                          <td
+                            class="px-4 py-3 whitespace-nowrap text-right font-medium text-red-600"
+                          >
+                            -$17,000.00
+                          </td>
+                        </tr>
+                        <tr class="transaction-row">
+                          <td class="px-4 py-3 whitespace-nowrap">
+                            2023-05-14
+                          </td>
+                          <td class="px-4 py-3 whitespace-nowrap font-medium">
+                            MSFT
+                          </td>
+                          <td class="px-4 py-3 whitespace-nowrap">
+                            <span class="badge badge-short text-red-600">
+                              <i
+                                data-lucide="trending-down"
+                                class="w-3 h-3 mr-1"
+                              ></i>
+                              Sell
+                            </span>
+                          </td>
+                          <td class="px-4 py-3 whitespace-nowrap text-right">
+                            50
+                          </td>
+                          <td class="px-4 py-3 whitespace-nowrap text-right">
+                            $307.42
+                          </td>
+                          <td
+                            class="px-4 py-3 whitespace-nowrap text-right font-medium text-green-600"
+                          >
+                            +$15,371.00
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Transaction Stats -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+                <div class="bg-white border border-gray-200 p-6 rounded-xl shadow-sm">
+                  <h3 class="text-lg font-semibold mb-4 text-gray-800">Transaction Stats</h3>
+                  <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-600">Total Transactions</span>
+                      <span class="font-semibold text-lg" id="totalTransactions">2</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-600">Buy Transactions (Long)</span>
+                      <span
+                        class="font-semibold text-lg text-green-600"
+                        id="buyTransactions"
+                        >1</span
+                      >
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-600"
+                        >Sell Transactions (Short)</span
+                      >
+                      <span
+                        class="font-semibold text-lg text-red-600"
+                        id="sellTransactions"
+                        >1</span
+                      >
+                    </div>
+                    <div class="flex justify-between items-center border-t pt-4">
+                      <span class="text-gray-600 font-medium">Total Value</span>
+                      <span class="font-bold text-xl text-blue-600" id="totalValue">$0.00</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-white border border-gray-200 p-6 rounded-xl shadow-sm">
+                  <h3 class="text-lg font-semibold mb-4 text-gray-800">Recent Activity</h3>
+                  <div class="space-y-4" id="recentActivities">
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                          <i
+                            data-lucide="trending-up"
+                            class="w-5 h-5 text-green-600"
+                          ></i>
+                        </div>
+                        <div>
+                          <div class="text-sm font-medium">Buy (Long) AAPL</div>
+                          <div class="text-xs text-gray-500">
+                            100 shares @ $170.00
+                          </div>
+                        </div>
+                      </div>
+                      <div class="text-right">
+                        <div class="text-sm font-semibold text-red-600">
+                          -$17,000.00
+                        </div>
+                        <div class="text-xs text-gray-500">2023-05-15</div>
+                      </div>
+                    </div>
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                          <i
+                            data-lucide="trending-down"
+                            class="w-5 h-5 text-red-600"
+                          ></i>
+                        </div>
+                        <div>
+                          <div class="text-sm font-medium">
+                            Sell (Short) MSFT
+                          </div>
+                          <div class="text-xs text-gray-500">
+                            50 shares @ $307.42
+                          </div>
+                        </div>
+                      </div>
+                      <div class="text-right">
+                        <div class="text-sm font-semibold text-green-600">
+                          +$15,371.00
+                        </div>
+                        <div class="text-xs text-gray-500">2023-05-14</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <!-- <footer class="footer">
+      <div class="container mx-auto">
+        <p>© 2025 AssetPro. Demo Version</p>
+      </div>
+    </footer> -->
+
+    <script>
+      fetch("/sidebar.html")
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById("sidebar-container").innerHTML = html;
+
+          // 侧边栏加载完成后，手动设置当前页面的活跃状态
+          setTimeout(() => {
+            const navItems = document.querySelectorAll(".sidebar-nav a");
+            navItems.forEach((item) => {
+              item.classList.remove("active");
+              if (item.getAttribute("href") === "trading.html") {
+                item.classList.add("active");
+              }
+            });
+          }, 100);
+        })
+        .catch((error) => console.error("加载侧边栏失败:", error));
+      // Initialize icons
+      lucide.createIcons();
+
+      // Tab switching functionality
+      document
+        .getElementById("tradeTab")
+        .addEventListener("click", function () {
+          setActiveTab("tradeTab");
+          document.getElementById("tradePanel").classList.remove("hidden");
+          // document.getElementById('positionPanel').classList.add('hidden');
+          document.getElementById("historyPanel").classList.add("hidden");
+        });
+
+      // document.getElementById('positionTab').addEventListener('click', function() {
+      //     setActiveTab('positionTab');
+      //     document.getElementById('positionPanel').classList.remove('hidden');
+      //     document.getElementById('tradePanel').classList.add('hidden');
+      //     document.getElementById('historyPanel').classList.add('hidden');
+      // });
+
+      document
+        .getElementById("historyTab")
+        .addEventListener("click", function () {
+          setActiveTab("historyTab");
+          document.getElementById("historyPanel").classList.remove("hidden");
+          document.getElementById("tradePanel").classList.add("hidden");
+          // document.getElementById('positionPanel').classList.add('hidden');
+        });
+
+      function setActiveTab(tabId) {
+        // Remove active class from all tabs
+        document.getElementById("tradeTab").classList.remove("tab-active");
+        // document.getElementById('positionTab').classList.remove('tab-active');
+        document.getElementById("historyTab").classList.remove("tab-active");
+
+        // Add active class to current tab
+        document.getElementById(tabId).classList.add("tab-active");
+      }
+
+      // Order type switching
+      document.querySelectorAll("#tradePanel button").forEach((button) => {
+        button.addEventListener("click", function () {
+          if (this.textContent === "Market" || this.textContent === "Limit") {
+            const parent = this.parentElement;
+            parent.querySelectorAll("button").forEach((btn) => {
+              btn.classList.remove("order-type-active");
+            });
+            this.classList.add("order-type-active");
+          }
+        });
+      });
+
+      // Sample stock data
+      const stocks = [
+        { symbol: "AAPL", name: "Apple Inc." },
+        { symbol: "MSFT", name: "Microsoft Corp." },
+        { symbol: "GOOGL", name: "Alphabet Inc." },
+        { symbol: "TSLA", name: "Tesla Inc." },
+      ];
+
+      // // Update stock prices in dropdowns
+      // function updateStockPrices() {
+      //     const buySelect = document.getElementById('buySelect');
+      //     const sellSelect = document.getElementById('sellSelect');
+
+      //     // Clear existing options except the first one
+      //     while (buySelect.options.length > 1) {
+      //         buySelect.remove(1);
+      //     }
+      //     while (sellSelect.options.length > 1) {
+      //         sellSelect.remove(1);
+      //     }
+
+      //     // Add stocks with prices
+      //     stocks.forEach(stock => {
+      //         const optionBuy = document.createElement('option');
+      //         optionBuy.value = stock.symbol;
+      //         optionBuy.textContent = `${stock.symbol} - ${stock.name} (¥${stock.price.toFixed(2)})`;
+      //         buySelect.appendChild(optionBuy);
+
+      //         const optionSell = document.createElement('option');
+      //         optionSell.value = stock.symbol;
+      //         optionSell.textContent = `${stock.symbol} - ${stock.name} (¥${stock.price.toFixed(2)})`;
+      //         sellSelect.appendChild(optionSell);
+      //     });
+      // }
+
+      // // Initialize the page
+      // function init() {
+      //     updateStockPrices();
+
+      //     // Set up event listeners for stock selection
+      //     document.getElementById('buySelect').addEventListener('change', function() {
+      //         if (this.value) {
+      //             const stock = stocks.find(s => s.symbol === this.value);
+      //             if (stock) {
+      //                 document.getElementById('buySearch').value = `${stock.symbol} - ${stock.name}`;
+      //                 updateCurrentPrice(stock, true);
+      //             }
+      //         }
+      //     });
+
+      //     document.getElementById('sellSelect').addEventListener('change', function() {
+      //         if (this.value) {
+      //             const stock = stocks.find(s => s.symbol === this.value);
+      //             if (stock) {
+      //                 document.getElementById('sellSearch').value = `${stock.symbol} - ${stock.name}`;
+      //                 updateCurrentPrice(stock, false);
+      //             }
+      //         }
+      //     });
+
+      //     // Set initial stock prices
+      //     updateCurrentPrice(stocks[0], true);
+      //     updateCurrentPrice(stocks[1], false);
+      // }
+
+      // // Update current price display
+      // function updateCurrentPrice(stock, isBuy) {
+      //     const priceElement = isBuy ? document.getElementById('buyCurrentPrice') : document.getElementById('sellCurrentPrice');
+      //     const changeElement = isBuy ? document.getElementById('buyPriceChange') : document.getElementById('sellPriceChange');
+
+      //     priceElement.textContent = `¥${stock.price.toFixed(2)}`;
+
+      //     if (stock.change > 0) {
+      //         changeElement.textContent = `+${stock.change.toFixed(2)}%`;
+      //         changeElement.className = 'price-change positive';
+      //     } else if (stock.change < 0) {
+      //         changeElement.textContent = `${stock.change.toFixed(2)}%`;
+      //         changeElement.className = 'price-change negative';
+      //     } else {
+      //         changeElement.textContent = '0.00%';
+      //         changeElement.className = 'price-change';
+      //     }
+      // }
+
+      //实时价格显示(买入)
+      //let  = false;
+      // document.getElementById("buySearch").addEventListener("keydown", async (e) => {
+      // if (e.key === "Enter") {
+      //     const symbol = e.target.value.trim().toUpperCase();
+      //     if (!symbol) return;
+
+      //     try {
+      //     const res = await fetch(`/api/stock/quote/${symbol}`);
+
+      //     if (!res.ok) throw new Error("Failed to fetch price");
+
+      //     const data = await res.json();
+      //     const price = parseFloat(data.close).toFixed(2);
+      //     const percentChange = parseFloat(data.percent_change).toFixed(2); // 涨跌百分比
+      //     // 显示当前价格
+      //     document.getElementById("buyCurrentPrice").textContent = `¥${price}`;
+      //     document.getElementById("buySearch").dataset.price = price;
+      //     document.getElementById("buySelect").value = symbol;
+      //     const changeElement = document.getElementById("buyPriceChange");
+      //     const isPositive = percentChange >= 0;
+      //     changeElement.textContent = `${isPositive ? '+' : ''}${percentChange}%`;
+      //     changeElement.style.color = isPositive ? 'green' : 'red';
+      //     } catch (err) {
+      //     console.error(err);
+      //     alert("Stock not found or API error");
+
+      //     }
+      // }
+      // });
+      // 新增：失去焦点时自动获取股票价格（买入）
+      document
+        .getElementById("buySearch")
+        .addEventListener("blur", async () => {
+          const symbol = document
+            .getElementById("buySearch")
+            .value.trim()
+            .toUpperCase();
+          if (!symbol) return;
+
+          try {
+            // const res = await fetch(`/api/stock/quote/${symbol}`);
+            const res = await fetch(`/api/stock/quote-finnhub/${symbol}`);
+            if (!res.ok) throw new Error("Failed to fetch price");
+
+            const data = await res.json();
+            const price = parseFloat(data.c).toFixed(2);
+            const percentChange = parseFloat(data.dp).toFixed(2);
+
+            document.getElementById(
+              "buyCurrentPrice"
+            ).textContent = `$${price}`;
+            document.getElementById("buySearch").dataset.price = price;
+            // document.getElementById("buySelect").value = symbol;
+
+            const changeElement = document.getElementById("buyPriceChange");
+            const isPositive = percentChange >= 0;
+            changeElement.textContent = `${
+              isPositive ? "+" : ""
+            }${percentChange}%`;
+            changeElement.style.color = isPositive ? "green" : "red";
+          } catch (err) {
+            console.error(err);
+            alert("Stock not found or API error");
+          }
+        });
+
+      // 实时价格显示（卖出）
+      //         let isFetching = false;
+      // document.getElementById("sellSearch").addEventListener("keydown", async (e) => {
+      //   if (e.key === "Enter") {
+      //     const symbol = e.target.value.trim().toUpperCase();
+      //     if (!symbol) return;
+
+      //     try {
+      //       const res = await fetch(`/api/stock/quote/${symbol}`);
+      //       if (!res.ok) throw new Error("Failed to fetch price");
+
+      //       const data = await res.json();
+      //       const price = parseFloat(data.close).toFixed(2);
+      //       const percentChange = parseFloat(data.percent_change).toFixed(2); // 涨跌百分比
+
+      //       // 显示当前价格（卖出）
+      //       document.getElementById("sellCurrentPrice").textContent = `¥${price}`;
+      //       document.getElementById("sellSearch").dataset.price = price;
+      //       document.getElementById("sellSelect").value = symbol;
+      //         console.log(percentChange);
+      //       const changeElement = document.getElementById("sellPriceChange");
+      //       const isPositive = percentChange >= 0;
+      //       changeElement.textContent = `${isPositive ? '+' : ''}${percentChange}%`;
+      //       changeElement.style.color = isPositive ? 'green' : 'red';
+      //     } catch (err) {
+      //       alert("Stock not found or API error");
+      //       console.error(err);
+      //     }
+      //   }
+      // });
+
+      // 新增：失去焦点时自动获取（不再依赖回车）
+      document
+        .getElementById("sellSearch")
+        .addEventListener("blur", async () => {
+          const symbol = document
+            .getElementById("sellSearch")
+            .value.trim()
+            .toUpperCase();
+          if (!symbol) return;
+
+          try {
+            // const res = await fetch(`/api/stock/quote/${symbol}`);
+            const res = await fetch(`/api/stock/quote-finnhub/${symbol}`);
+            if (!res.ok) throw new Error("Failed to fetch price");
+
+            const data = await res.json();
+            const price = parseFloat(data.c).toFixed(2);
+            const percentChange = parseFloat(data.dp).toFixed(2);
+
+            document.getElementById(
+              "sellCurrentPrice"
+            ).textContent = `$${price}`;
+            document.getElementById("sellSearch").dataset.price = price;
+            // document.getElementById("sellSelect").value = symbol;
+
+            const changeElement = document.getElementById("sellPriceChange");
+            const isPositive = percentChange >= 0;
+            changeElement.textContent = `${
+              isPositive ? "+" : ""
+            }${percentChange}%`;
+            changeElement.style.color = isPositive ? "green" : "red";
+          } catch (err) {
+            console.error(err);
+            alert("Stock not found or API error");
+          }
+        });
+
+      //买入接口
+      // 改成用 id 选择器绑定事件
+      document.addEventListener("DOMContentLoaded", () => {
+        const buyButton = document.getElementById("buyButton");
+        buyButton.addEventListener("click", async () => {
+          const symbol = document.getElementById("buySearch").value.trim();
+          const quantity = parseInt(
+            document.getElementById("buyQuantity").value
+          );
+
+          if (!symbol) {
+            alert("Please select a stock");
+            return;
+          }
+
+          if (!quantity || quantity <= 0) {
+            alert("Please enter a valid buy quantity");
+            return;
+          }
+
+          try {
+            const res = await fetch(`/api/user/1/buy`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ symbol, quantity }),
+            });
+
+            const result = await res.json();
+            if (res.ok) {
+              alert(
+                `Buy successful：${result.quantity} shares of ${result.symbol}, price $${result.price}`
+              );
+            } else {
+              //console.log(result)
+              alert("Buy failed：" + result.error || result.message);
+            }
+          } catch (err) {
+            alert("Request error：" + err.message);
+          }
+        });
+      });
+
+      // 卖出接口模块
+      document.addEventListener("DOMContentLoaded", () => {
+        const sellButton = document.getElementById("sellButton");
+        sellButton.addEventListener("click", async () => {
+          const symbol = document.getElementById("sellSearch").value.trim();
+          const quantity = parseInt(
+            document.getElementById("sellQuantity").value
+          );
+
+          if (!symbol) {
+            alert("Please select a stock");
+            return;
+          }
+
+          if (!quantity || quantity <= 0) {
+            alert("Please enter a valid sell quantity");
+            return;
+          }
+
+          try {
+            const res = await fetch(`/api/user/1/sell`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ symbol, quantity }),
+            });
+
+            const result = await res.json();
+            if (res.ok) {
+              alert(
+                `Sell successful：${result.quantity} shares of ${result.symbol}, price $${result.price}`
+              );
+            } else {
+              alert("Sell failed：" + (result.error || result.message));
+            }
+          } catch (err) {
+            alert("Request error：" + err.message);
+          }
+        });
+      });
+
+      //获取Total value
+      async function updateTotalValue() {
+        try {
+          const userId = 1;
+          const response = await fetch(`/api/user/${userId}/assets/stocks`);
+          const data = await response.json();
+
+          const totalValueElement = document.getElementById("totalValue");
+          if (totalValueElement) {
+            totalValueElement.textContent = `$${data.totalValue.toFixed(2)}`;
+          }
+        } catch (error) {
+          console.error("Failed to fetch total value:", error);
+        }
+      }
+
+      //更新交易记录状态面板
+      async function updateTransactionState() {
+        try {
+          const userId = 1; // 从您的认证系统获取实际用户ID
+          const response = await fetch(`/api/user/${userId}/state`);
+
+          if (!response.ok) {
+            throw new Error(`State API Error: ${response.status}`);
+          }
+
+          const stateData = await response.json();
+
+          // 1. 更新交易统计部分
+          document.getElementById("totalTransactions").textContent =
+            stateData.totalTransactions;
+          document.getElementById("buyTransactions").textContent =
+            stateData.buyTransactions;
+          document.getElementById("sellTransactions").textContent =
+            stateData.sellTransactions;
+
+          // 2. 更新最近活动部分
+          const activitiesContainer =
+            document.getElementById("recentActivities");
+          activitiesContainer.innerHTML = ""; // 清空现有内容
+
+          // 处理最近买入
+          if (stateData.recentBuy) {
+            console.log(stateData.recentBuy);
+            const buyActivity = createActivityElement(
+              stateData.recentBuy,
+              "buy",
+              "trending-up",
+              "text-green-500",
+              "red"
+            );
+            activitiesContainer.appendChild(buyActivity);
+          }
+
+          // 处理最近卖出
+          if (stateData.recentSell) {
+            const sellActivity = createActivityElement(
+              stateData.recentSell,
+              "sell",
+              "trending-down",
+              "text-red-500",
+              "green"
+            );
+            activitiesContainer.appendChild(sellActivity);
+          }
+
+          // 如果没有活动
+          if (activitiesContainer.children.length === 0) {
+            activitiesContainer.innerHTML = `
+        <div class="text-center py-4 text-gray-500">
+          No recent transactions
+        </div>
+      `;
+          }
+        } catch (error) {
+          console.error("Failed to update transaction state:", error);
+          const activitiesContainer =
+            document.getElementById("recentActivities");
+          activitiesContainer.innerHTML = `
+      <div class="text-center py-4 text-red-500">
+        Failed to load transaction data: ${error.message}
+      </div>
+    `;
+        }
+      }
+      // 创建单个活动元素的辅助函数
+      function createActivityElement(
+        activity,
+        type,
+        icon,
+        iconColor,
+        amountColor
+      ) {
+        const element = document.createElement("div");
+        element.className = "flex items-center justify-between py-2 border-b";
+
+        const sign = type === "buy" ? "negative" : "positive";
+        const actionText = type === "buy" ? "Buy (Long)" : "Sell (Short)";
+
+        // 根据交易类型确定金额符号和颜色
+        const amountPrefix = type === "buy" ? "-" : "+";
+        const amountClass = `text-${amountColor}-600`;
+
+        element.innerHTML = `
+    <div class="flex items-center space-x-3">
+      <div class="p-2 rounded-full bg-gray-100">
+        <i data-lucide="${icon}" class="w-5 h-5 ${iconColor}"></i>
+      </div>
+      <div>
+        <div class="text-sm font-medium">
+          ${actionText} ${activity.symbol}
+        </div>
+        <div class="text-xs text-gray-500">
+          ${activity.quantity}  $${parseFloat(activity.price).toFixed(2)}
+        </div>
+      </div>
+    </div>
+    <div class="text-right">
+      <div class="text-sm font-medium ${amountClass}">
+        ${amountPrefix}$${activity.total.toFixed(2)}
+      </div>
+      <div class="text-xs text-gray-500">
+        ${activity.timestamp}
+      </div>
+    </div>
+  `;
+
+        return element;
+      }
+
+      // 各个事件监听器
+      document.addEventListener("DOMContentLoaded", () => {
+        // 初始调用和设置定时更新
+        updateTotalValue();
+        updateTransactionState();
+
+        //   // 买入按钮事件监听
+        //   const buyButton = document.getElementById("buyButton");
+        //   buyButton.addEventListener("click", async () => {
+        //     //...existing buy button code...
+        //   });
+
+        //   // 卖出按钮事件监听
+        //   const sellButton = document.getElementById("sellButton");
+        //   sellButton.addEventListener("click", async () => {
+        //     //...existing sell button code...
+        //   });
+      });
+
+      // Fetch and render transactions交易记录展示
+      const userId = 1; // 根据实际用户 ID 替换
+      const API_URL = `/api/user/${userId}/transactions`;
+
+      const typeMap = {
+        buy: {
+          label: "Buy (Long)",
+          icon: "trending-up",
+          badgeClass: "badge-long",
+          amountClass: "text-red-600",
+          sign: "-",
+        },
+        sell: {
+          label: "Sell (Short)",
+          icon: "trending-down",
+          badgeClass: "badge-short",
+          amountClass: "text-green-600",
+          sign: "+",
+        },
+      };
+
+      const fetchTransactions = async (filterType = "all") => {
+        let url = `${API_URL}?page=1&pageSize=10`;
+        if (["buy", "sell"].includes(filterType)) {
+          url += `&type=${filterType}`;
+        }
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        const tbody = document.getElementById("transactionTableBody");
+        tbody.innerHTML = "";
+
+        data.transactions.forEach((tx) => {
+          const typeInfo = typeMap[tx.type] || {};
+          const dateStr = new Date(tx.timestamp).toISOString().split("T")[0];
+          const totalAmount = (tx.price * tx.quantity).toFixed(2);
+
+          const row = document.createElement("tr");
+          row.className = "transaction-row";
+          row.innerHTML = `
+                <td class="w-1/6 px-2 py-3 whitespace-nowrap">${dateStr}</td>
+                <td class="w-1/6 px-2 py-3 whitespace-nowrap font-medium">${
+                  tx.symbol
+                }</td>
+                <td class="w-1/6 px-2 py-3 whitespace-nowrap text-center">
+                <span class="badge ${typeInfo.badgeClass}">
+                <i data-lucide="${typeInfo.icon}" class="w-3 h-3 mr-1"></i>
+                ${typeInfo.label}
+                </span>
+                </td>
+            <td class="w-1/6 px-2 py-3 whitespace-nowrap text-right">${
+              tx.quantity
+            } shares</td>
+            <td class="w-1/6 px-2 py-3 whitespace-nowrap text-right">$${tx.price.toFixed(
+              2
+            )}</td>
+            <td class="w-1/6 px-2 py-3 whitespace-nowrap text-right font-medium ${
+              typeInfo.amountClass
+            }">
+            ${typeInfo.sign}$${totalAmount}
+            </td>
+            `;
+          tbody.appendChild(row);
+        });
+
+        lucide.createIcons(); // 渲染 Lucide 图标
+      };
+
+      // 初次加载
+      fetchTransactions();
+
+      // 绑定按钮筛选事件
+      document.querySelectorAll(".filter-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document
+            .querySelectorAll(".filter-btn")
+            .forEach((b) => b.classList.remove("filter-btn-active"));
+          btn.classList.add("filter-btn-active");
+          const type = btn.dataset.filter;
+          fetchTransactions(type);
+        });
+      });
+      const stockFilter = document.getElementById("stockFilter");
+      //end
+
+      // Initialize the application
+      init();
+    </script>
+  </body>
+</html>
