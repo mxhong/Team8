@@ -565,7 +565,21 @@
   </table>
 </div>
     <script>
-      // 动态加载侧边栏
+      let userId = 1; // 假设用户ID为1，实际应用中应从登录状态获取
+      let stockData; // 原始股票数据
+      let stockHoldings = []; // 全局股票持仓数据，用于各种显示
+      let stockHoldingsLoaded = false; // 标记是否已加载股票持仓数据
+      
+      // 缓存资产数据，用于显示/隐藏余额功能
+      let cachedAssetData = {
+        totalAssets: null,
+        cashBalance: null,
+        stockHoldingsValue: null,
+        pnl: null,
+        tableHtml: null // 缓存表格HTML内容
+      };
+
+      // load sidebar
       fetch("/sidebar.html")
         .then((response) => response.text())
         .then((html) => {
@@ -584,83 +598,197 @@
         })
         .catch((error) => console.error("加载侧边栏失败:", error));
 
-      
-      //current holdings加载function
-      async function fetchAndDisplayHoldings() {
-          try {
-            console.log('开始获取持仓数据...'); // 调试信息
-            // 1. 调用后端API获取用户股票数据
-            const userId = 1; // 假设用户ID存储在localStorage中
-            const response = await fetch(`http://localhost:3000/api/user/${userId}/assets/details`);
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const resData = await response.json();
-            console.log('API返回数据:', resData); // 调试信息
+      fetchAndDisplayHoldings();
+      fetchAssetInfo();
 
-            // 2. 筛选出股票类型资产（排除现金）并按总价值倒序排序
-            // 检查数据结构，支持多种可能的响应格式
-            let stockData;
-            if (Array.isArray(resData)) {
-              // 直接是数组格式
-              stockData = resData;
-            } else if (resData.data && Array.isArray(resData.data)) {
-              // 包装在data属性中的数组格式
-              stockData = resData.data;
-            } else {
-              stockData = [];
-            }
-            
-            // 确保stockData是数组
-            if (!Array.isArray(stockData)) {
-              console.warn('API返回的数据不是数组格式:', stockData);
-              throw new Error('API返回的数据格式不正确');
-            }
-            
-            const stockHoldings = stockData
-              .filter(item => item.assetType === 'stock')
-              .sort((a, b) => b.currentValue - a.currentValue); // 按总价值倒序排序
-            
-            console.log('处理后的股票数据:', stockHoldings); // 调试信息
-            
-            // 3. 获取表格主体元素
-            const tableBody = document.getElementById('holdingsTableBody');
-            tableBody.innerHTML = ''; // 清空现有内容
-        
-          // 4. 遍历数据并生成表格行
-          stockHoldings.forEach(stock => {
-          // 计算回报率
-          const returnRate = ((stock.currentValue - stock.totalCost) / stock.totalCost) * 100;
-          // 根据回报率正负设置样式类
-          const returnClass = returnRate >= 0 ? 'return-positive' : 'return-negative';
-          // 创建表格行
-          const row = document.createElement('tr');
-          // 格式化数据显示
-          const quantity = stock.quantity % 1 === 0 ? stock.quantity.toFixed(0) : stock.quantity.toFixed(2);
-          const currentPrice = `$${stock.currentPrice.toFixed(2)}`;
-          const value = `$${stock.currentValue.toFixed(2)}`;
-          const rateText = `${returnRate.toFixed(2)}%`;
-          // 设置行内容
-          row.innerHTML = `
-            <td class="symbol">${stock.symbol}</td>
-            <td>${quantity}</td>
-            <td class="price">${currentPrice}</td>
-            <td class="${returnClass}">
-              ${returnRate >= 0 ? '+' : ''}${rateText}
-            </td>
-            <td class="value" data-original="${value}">${value}</td>
-          `;
-          tableBody.appendChild(row);
-          });
-        console.log('表格更新完成'); // 调试信息
+      // 获取股票持仓数据的全局函数
+      async function fetchStockHoldings() {
+        if (stockHoldingsLoaded) {
+          return stockHoldings; // 如果已加载，直接返回缓存数据
+        }
+
+        try {
+          console.log('开始获取股票持仓数据...'); // 调试信息
+          const response = await fetch(`http://localhost:3000/api/user/${userId}/assets/details`);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const resData = await response.json();
+          console.log('API返回数据:', resData); // 调试信息
+
+          // 处理API响应数据格式
+          if (Array.isArray(resData)) {
+            stockData = resData;
+          } else if (resData.data && Array.isArray(resData.data)) {
+            stockData = resData.data;
+          } else {
+            stockData = [];
+          }
+          
+          // 确保stockData是数组
+          if (!Array.isArray(stockData)) {
+            console.warn('API返回的数据不是数组格式:', stockData);
+            throw new Error('API返回的数据格式不正确');
+          }
+          
+          // 筛选股票类型资产并按总价值倒序排序
+          stockHoldings = stockData
+            .filter(item => item.assetType === 'stock')
+            .sort((a, b) => b.currentValue - a.currentValue);
+          
+          stockHoldingsLoaded = true; // 标记已加载
+          console.log('股票持仓数据加载完成:', stockHoldings); // 调试信息
+          
+          return stockHoldings;
         } catch (error) {
-        console.error('获取持仓数据失败:', error);
-        // 如果API调用失败，使用模拟数据
-        console.log('使用模拟数据...'); // 调试信息
-        // displayMockHoldings();
+          console.error('获取股票持仓数据失败:', error);
+          stockHoldings = []; // 失败时设为空数组
+          return stockHoldings;
         }
       }
-      fetchAndDisplayHoldings();
+
+      async function fetchAssetInfo() {
+        try {
+          // 后端API地址（假设后端运行在3000端口）
+          const cashResponse = await fetch(
+            `http://localhost:3000/api/user/${userId}/assets/cash`
+          );
+          const stockResponse = await fetch(
+            `http://localhost:3000/api/user/${userId}/assets/stocks`
+          );
+          const costResponse = await fetch(
+            `http://localhost:3000/api/user/${userId}/assets/stocks/cost`
+          );
+          if (!cashResponse.ok || !stockResponse.ok || !costResponse.ok) {
+            // 如果需要，可以在这里处理错误，比如显示一个提示信息
+            throw new Error("Network response was not ok");
+          }
+          const stockData = await stockResponse.json();
+          const cashData = await cashResponse.json();
+          const costData = await costResponse.json();
+
+          const totalAssets = Number(cashData.totalCash) + stockData.totalValue;
+          const cashBalance = Number(cashData.totalCash);
+          const stockHoldingsValue = stockData.totalValue;
+          const pnlValue = stockData.totalValue - costData.totalCost;
+
+          // 缓存资产数据
+          cachedAssetData.totalAssets = `$${totalAssets.toFixed(2)}`;
+          cachedAssetData.cashBalance = `$${cashBalance.toFixed(2)}`;
+          cachedAssetData.stockHoldingsValue = `$${stockHoldingsValue.toFixed(2)}`;
+          cachedAssetData.pnl = `$${pnlValue.toFixed(2)}`;
+
+          // 更新页面上的总资产显示
+          document.getElementById("totalAssets").textContent = cachedAssetData.totalAssets;
+          // 更新页面上的现金资产显示
+          document.getElementById("cashBalance").textContent = cachedAssetData.cashBalance;
+          // 更新页面上的股票持仓显示
+          document.getElementById("stockHoldings").textContent = cachedAssetData.stockHoldingsValue;
+          document.getElementById("pnl").textContent = cachedAssetData.pnl;
+
+          // 获取全局股票持仓数据用于饼图
+          await fetchStockHoldings(); // 确保股票持仓数据已加载
+          
+          // 将股票持仓数据转换为饼图所需格式
+          const stockHoldingsForChart = stockHoldings.map(stock => ({
+            symbol: stock.symbol,
+            value: stock.currentValue
+          }));
+
+          const assetData = {
+            cashAmount: Number(cashData.totalCash),
+            totalAssets: totalAssets,
+            stockHoldings: stockHoldingsForChart,
+          };
+
+          // 更新饼图
+          createAllocationChart(assetData);
+        } catch (error) {
+          console.error("获取资产信息失败:", error);
+          // 如果API调用失败，使用默认数据创建饼图
+          const fallbackAssetData = {
+            cashAmount: 5000,
+            totalAssets: 15000,
+            stockHoldings: [], // 空数组，只显示现金
+          };
+          createAllocationChart(fallbackAssetData);
+        }
+      }
+
+      //current holdings加载function
+      async function fetchAndDisplayHoldings() {
+        try {
+          // 使用全局函数获取股票持仓数据
+          await fetchStockHoldings();
+          
+          console.log('开始显示持仓数据...'); // 调试信息
+          
+          // 获取表格主体元素
+          const tableBody = document.getElementById('holdingsTableBody');
+          tableBody.innerHTML = ''; // 清空现有内容
+      
+          // 遍历全局股票持仓数据并生成表格行
+          stockHoldings.forEach(stock => {
+            // 计算回报率
+            const returnRate = ((stock.currentValue - stock.totalCost) / stock.totalCost) * 100;
+            // 根据回报率正负设置样式类
+            const returnClass = returnRate >= 0 ? 'return-positive' : 'return-negative';
+            // 创建表格行
+            const row = document.createElement('tr');
+            // 格式化数据显示
+            const quantity = stock.quantity % 1 === 0 ? stock.quantity.toFixed(0) : stock.quantity.toFixed(2);
+            const currentPrice = `$${stock.currentPrice.toFixed(2)}`;
+            const value = `$${stock.currentValue.toFixed(2)}`;
+            const rateText = `${returnRate.toFixed(2)}%`;
+            // 设置行内容
+            row.innerHTML = `
+              <td class="symbol">${stock.symbol}</td>
+              <td>${quantity}</td>
+              <td class="price">${currentPrice}</td>
+              <td class="${returnClass}">
+                ${returnRate >= 0 ? '+' : ''}${rateText}
+              </td>
+              <td class="value" data-original="${value}">${value}</td>
+            `;
+            tableBody.appendChild(row);
+          });
+          
+          // 缓存表格HTML内容
+          cachedAssetData.tableHtml = tableBody.innerHTML;
+          
+          console.log('表格更新完成'); // 调试信息
+        } catch (error) {
+          console.error('显示持仓数据失败:', error);
+          // 如果失败，保持表格为空或显示错误信息
+        }
+      }
+
+      // 刷新股票持仓数据的函数
+      async function refreshStockHoldings() {
+        stockHoldingsLoaded = false; // 重置加载标记
+        stockHoldings = []; // 清空缓存
+        return await fetchStockHoldings(); // 重新获取数据
+      }
+
+      // 恢复缓存数据的函数
+      function restoreCachedData() {
+        if (cachedAssetData.totalAssets) {
+          document.getElementById("totalAssets").textContent = cachedAssetData.totalAssets;
+        }
+        if (cachedAssetData.cashBalance) {
+          document.getElementById("cashBalance").textContent = cachedAssetData.cashBalance;
+        }
+        if (cachedAssetData.stockHoldingsValue) {
+          document.getElementById("stockHoldings").textContent = cachedAssetData.stockHoldingsValue;
+        }
+        if (cachedAssetData.pnl) {
+          document.getElementById("pnl").textContent = cachedAssetData.pnl;
+        }
+        if (cachedAssetData.tableHtml) {
+          document.getElementById('holdingsTableBody').innerHTML = cachedAssetData.tableHtml;
+        }
+      }
+      
 
 // 显示模拟数据的函数
 // function displayMockHoldings() {
@@ -834,8 +962,11 @@
 
         const { cashAmount, stockHoldings, totalAssets } = assetData;
 
+        // 确保 stockHoldings 是数组，如果不是则初始化为空数组
+        const safeStockHoldings = Array.isArray(stockHoldings) ? stockHoldings : [];
+
         // 按价值排序股票持仓，取前三
-        const sortedStocks = stockHoldings.sort((a, b) => b.value - a.value);
+        const sortedStocks = safeStockHoldings.sort((a, b) => b.value - a.value);
         const topThreeStocks = sortedStocks.slice(0, 3);
         const otherStocks = sortedStocks.slice(3);
 
@@ -973,7 +1104,7 @@
       // createAllocationChart(mockAssetData);
 
       // 调用获取资产信息
-      fetchAssetInfo();
+      
 
       // 调用获取持仓信息
       
@@ -991,12 +1122,23 @@
           .querySelector("i")
           .classList.contains("fa-eye");
         if (isHidden) {
-          // 显示余额 - 重新获取最新数据
-          await fetchAssetInfo();
+          // 显示余额 - 使用缓存数据
+          restoreCachedData();
         } else {
           // 隐藏余额
-          balanceElements.forEach((el) => {
-            el.textContent = "*****";
+          document.getElementById("totalAssets").textContent = "*****";
+          document.getElementById("cashBalance").textContent = "*****";
+          document.getElementById("stockHoldings").textContent = "*****";
+          document.getElementById("pnl").textContent = "*****";
+          
+          // 隐藏表格中的价格和价值数据
+          const tableBody = document.getElementById('holdingsTableBody');
+          const rows = tableBody.querySelectorAll('tr');
+          rows.forEach(row => {
+            const priceCell = row.querySelector('.price');
+            const valueCell = row.querySelector('.value');
+            if (priceCell) priceCell.textContent = "*****";
+            if (valueCell) valueCell.textContent = "*****";
           });
         }
         // 切换按钮图标和文本
@@ -1041,67 +1183,7 @@
       handleResize();
       // fetch user asset data
 
-      async function fetchAssetInfo() {
-        try {
-          const userId = 1; // 假设用户ID为1，实际应用中应动态获取
-          // 后端API地址（假设后端运行在3000端口）
-          const cashResponse = await fetch(
-            `http://localhost:3000/api/user/${userId}/assets/cash`
-          );
-          const stockResponse = await fetch(
-            `http://localhost:3000/api/user/${userId}/assets/stocks`
-          );
-          const costResponse = await fetch(
-            `http://localhost:3000/api/user/${userId}/assets/stocks/cost`
-          );
-          if (!cashResponse.ok || !stockResponse.ok || !costResponse.ok) {
-            // 如果需要，可以在这里处理错误，比如显示一个提示信息
-            throw new Error("Network response was not ok");
-          }
-          const stockData = await stockResponse.json();
-          const cashData = await cashResponse.json();
-          const costData = await costResponse.json();
-
-          const totalAssets = Number(cashData.totalCash) + stockData.totalValue;
-
-          // 更新页面上的总资产显示
-          document.getElementById(
-            "totalAssets"
-          ).textContent = `$${totalAssets.toFixed(2)}`;
-          // 更新页面上的现金资产显示
-          document.getElementById("cashBalance").textContent = `$${Number(
-            cashData.totalCash
-          ).toFixed(2)}`;
-          // 更新页面上的股票持仓显示
-          document.getElementById(
-            "stockHoldings"
-          ).textContent = `$${stockData.totalValue.toFixed(2)}`;
-          document.getElementById("pnl").textContent = `$${(
-            stockData.totalValue - costData.totalCost
-          ).toFixed(2)}`;
-
-          // 更新饼图数据 - 假设API返回的股票数据包含持仓信息
-          // 这里需要根据实际API数据结构调整
-          const stockHoldings = [
-            { symbol: "AAPL", value: 1750 },
-            { symbol: "GOOGL", value: 6250 },
-            { symbol: "MSFT", value: 2800 },
-            { symbol: "AMZN", value: 405 },
-          ]; // 临时使用模拟数据，实际应该从stockData中获取
-
-          const assetData = {
-            cashAmount: Number(cashData.totalCash),
-            totalAssets: totalAssets,
-            stockHoldings: stockHoldings,
-          };
-
-          // 更新饼图
-          createAllocationChart(assetData);
-        } catch (error) {
-          console.error("获取资产信息失败:", error);
-          // 如果API调用失败，保持使用模拟数据的饼图
-        }
-      }
+      
 
       // 监听窗口大小变化
       window.addEventListener("resize", () => {
@@ -1122,10 +1204,6 @@
           }
         }
       });
-
-      
-  
-      
     </script>
   </body>
 </html>
