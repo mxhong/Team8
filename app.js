@@ -184,6 +184,47 @@ app.get("/api/stock/quote/:symbol", async (req, res) => {
   }
 });
 
+// Get stock real-time quote - finnhub
+// More API quota but less information
+app.get("/api/stock/quote-finnhub/:symbol", async (req, res) => {
+  try {
+    const { symbol } = req.params;
+    console.log(`API request received for symbol: ${symbol}`);
+
+    const url = `${FINN_HUB_BASE_URL}/quote?symbol=${symbol}&token=${FINN_HUB_API_KEY}`;
+    console.log(`Calling API: ${url}`);
+
+    const response = await fetch(url);
+    console.log(`API response status: ${response.status}`);
+
+    const data = await response.json();
+    console.log(`API response data:`, data);
+
+    if (data.code && data.status === "error") {
+      console.error(`API error: ${data.message}`);
+      return res.status(data.code).json({
+        error: "API request failed",
+        details: data.message,
+      });
+    }
+
+    if (!data.symbol) {
+      console.error("No symbol found in API response");
+      return res.status(404).json({ error: "Stock data not found" });
+    }
+
+    console.log(`Successfully returning data for ${symbol}`);
+    // Return original API response
+    res.json(data);
+  } catch (error) {
+    console.error("Failed to get stock quote:", error);
+    res.status(500).json({
+      error: "Internal server error",
+      details: error.message,
+    });
+  }
+});
+
 // Get stock data
 app.get("/api/stock/:symbol", async (req, res) => {
   try {
