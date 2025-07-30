@@ -1,59 +1,63 @@
 <!-- The home page after logging in -->
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Home - AssetPro</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            'primary': '#d32f2f',
-            'primary-light': '#ff4d4f',
-            'secondary': '#52c41a',
-            'light-gray': '#f5f5f5',
-            'mid-gray': '#e8e8e8',
-            'dark-gray': '#8c8c8c',
-            'nav-active': '#fff7f7'
-          },
-          fontFamily: {
-            sans: ['Inter', 'system-ui', 'sans-serif'],
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home - AssetPro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css"
+      rel="stylesheet"
+    />
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#d32f2f",
+              "primary-light": "#ff4d4f",
+              secondary: "#52c41a",
+              "light-gray": "#f5f5f5",
+              "mid-gray": "#e8e8e8",
+              "dark-gray": "#8c8c8c",
+              "nav-active": "#fff7f7",
+            },
+            fontFamily: {
+              sans: ["Inter", "system-ui", "sans-serif"],
+            },
           },
         },
-
+      };
+    </script>
+    <style type="text/tailwindcss">
+      @layer utilities {
+        .card-shadow {
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        .hover-lift {
+          transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .hover-lift:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+        .nav-active {
+          background-color: #fff7f7;
+          border-left: 4px solid #ff4d4f;
+        }
+        .gradient-bg {
+          background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        }
       }
-    }
-  </script>
-  <style type="text/tailwindcss">
-    @layer utilities {
-      .card-shadow {
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      }
-      .hover-lift {
-        transition: transform 0.2s, box-shadow 0.2s;
-      }
-      .hover-lift:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-      }
-      .nav-active {
-        background-color: #fff7f7;
-        border-left: 4px solid #ff4d4f;
-      }
-      .gradient-bg {
-        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-      }
-    }
-  </style>
-</head>
-<body class="bg-white font-sans text-gray-800">
-  <div class="flex h-screen overflow-hidden">
-    <!-- Sidebar -->
-    <aside class="w-64 bg-[#f8f9fa] border-r border-[#eee] flex flex-col justify-between fixed h-screen">
+    </style>
+  </head>
+  <body class="bg-white font-sans text-gray-800">
+    <div class="flex h-screen overflow-hidden">
+      <div id="sidebar-container"></div>
+      <!-- Sidebar -->
+      <!-- <aside class="w-64 bg-[#f8f9fa] border-r border-[#eee] flex flex-col justify-between fixed h-screen">
       <div>
         <div class="p-6 border-b border-[#eee]">
           <h1 class="text-2xl font-extrabold text-[#d32f2f] tracking-wide">AssetPro</h1>
@@ -69,7 +73,7 @@
               <li>
                 <a href="assetdashboard.html" class="flex items-center p-3 rounded-lg transition-colors font-medium text-gray-700 hover:bg-white hover:text-[#d32f2f]">
                   <i class="fa fa-briefcase mr-3"></i>
-                  Dashboard
+                  My Holdings
                 </a>
               </li>
             <li>
@@ -84,7 +88,12 @@
                 Trading Center
               </a>
             </li>
-            
+            <li>
+              <a href="records.html" class="flex items-center p-3 rounded-lg transition-colors font-medium text-gray-700 hover:bg-white hover:text-[#d32f2f]">
+                <i class="fa fa-history mr-3"></i>
+                Trading Records
+              </a>
+            </li>
           </ul>
         </nav>
       </div>
@@ -94,172 +103,286 @@
           <button id="logout-btn" class="px-4 py-1 bg-[#d32f2f] text-white rounded hover:bg-red-700 text-sm w-full">Logout</button>
         </div>
       </div>
-    </aside>
-    
-    <!-- Main Content Area -->
-    <main class="flex-1 min-h-screen bg-gradient-to-br from-gray-50 to-white flex flex-col overflow-y-auto ml-64">
-      <div class="flex-1 flex flex-col px-12 py-8">
-        <!-- Welcome Section -->
-        <div class="text-center mb-12">
-          <h1 class="text-4xl font-bold text-gray-900 mb-4">Welcome to AssetPro</h1>
-          <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-            Your comprehensive platform for smart investing and portfolio management
-          </p>
-        </div>
-        
-        <!-- Feature Cards Section -->
-        <div class="max-w-6xl mx-auto mb-12">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <!-- Portfolio Management Card -->
-            <div class="bg-white rounded-xl shadow-lg p-8 hover-lift border border-gray-100 flex flex-col items-center">
-              <div class="w-16 h-16 bg-primary rounded-lg flex items-center justify-center mb-6 mx-auto transform rotate-180">
-                <div class="flex space-x-1">
-                  <div class="w-2 h-4 bg-white rounded"></div>
-                  <div class="w-2 h-6 bg-white rounded"></div>
-                  <div class="w-2 h-8 bg-white rounded"></div>
-                </div>
-              </div>
-              <h3 class="text-xl font-bold text-gray-900 mb-4 text-center">Portfolio Management</h3>
-              <p class="text-gray-600 text-center leading-relaxed">
-                Comprehensive view of your investments including total assets, cash balance, and stock holdings.
-              </p>
-              <div class="mt-6 text-center w-full flex justify-center">
-                <a href="assetdashboard.html" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors w-40 justify-center">
-                  <i class="fa fa-arrow-right mr-2"></i>
-                  View Portfolio
-                </a>
-              </div>
-            </div>
+    </aside> -->
 
-            <!-- Easy Trading Card -->
-            <div class="bg-white rounded-xl shadow-lg p-8 hover-lift border border-gray-100 flex flex-col items-center">
-              <div class="w-16 h-16 bg-primary rounded-lg flex items-center justify-center mb-6 mx-auto">
-                <i class="fa fa-line-chart text-white text-2xl"></i>
-              </div>
-              <h3 class="text-xl font-bold text-gray-900 mb-4 text-center">Easy Trading</h3>
-              <p class="text-gray-600 text-center leading-relaxed">
-                Execute buy and sell orders safely with our simulated trading environment.
-              </p>
-              <div class="mt-6 text-center w-full flex justify-center">
-                <a href="trading.html" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors w-40 justify-center">
-                  <i class="fa fa-arrow-right mr-2"></i>
-                  Start Trading
-                </a>
-              </div>
-            </div>
-
-            <!-- Real-time Market Data Card -->
-            <div class="bg-white rounded-xl shadow-lg p-8 hover-lift border border-gray-100 flex flex-col items-center">
-              <div class="w-16 h-16 bg-primary rounded-lg flex items-center justify-center mb-6 mx-auto">
-                <!-- 折线图icon -->
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <polyline points="4,24 12,16 20,22 28,10" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                  <circle cx="4" cy="24" r="2" fill="white"/>
-                  <circle cx="12" cy="16" r="2" fill="white"/>
-                  <circle cx="20" cy="22" r="2" fill="white"/>
-                  <circle cx="28" cy="10" r="2" fill="white"/>
-                </svg>
-              </div>
-              <h3 class="text-xl font-bold text-gray-900 mb-4 text-center">Real-time Market Data</h3>
-              <p class="text-gray-600 text-center leading-relaxed">
-                Stay updated with live stock prices and market movements to make informed decisions.
-              </p>
-              <div class="mt-6 text-center w-full flex justify-center">
-                <a href="stock.html" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors w-40 justify-center">
-                  <i class="fa fa-arrow-right mr-2"></i>
-                  View Market
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Quick Access Grid Section -->
-        <div class="max-w-6xl mx-auto">
-          <div class="text-center mb-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-4">Quick Access</h2>
-            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-              Navigate to different sections of your investment platform with ease
+      <!-- Main Content Area -->
+      <main
+        class="flex-1 min-h-screen bg-gradient-to-br from-gray-50 to-white flex flex-col overflow-y-auto ml-64"
+      >
+        <div class="flex-1 flex flex-col px-12 py-8">
+          <!-- Welcome Section -->
+          <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">
+              Welcome to AssetPro
+            </h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+              Your comprehensive platform for smart investing and portfolio
+              management
             </p>
           </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <!-- Stock Market Quick Access -->
-            <div class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100 group">
-              <div class="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">
-                <i class="fa fa-line-chart text-white text-2xl"></i>
+
+          <!-- Feature Cards Section -->
+          <div class="max-w-6xl mx-auto mb-12">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <!-- Portfolio Management Card -->
+              <div
+                class="bg-white rounded-xl shadow-lg p-8 hover-lift border border-gray-100 flex flex-col items-center"
+              >
+                <div
+                  class="w-16 h-16 bg-primary rounded-lg flex items-center justify-center mb-6 mx-auto transform rotate-180"
+                >
+                  <div class="flex space-x-1">
+                    <div class="w-2 h-4 bg-white rounded"></div>
+                    <div class="w-2 h-6 bg-white rounded"></div>
+                    <div class="w-2 h-8 bg-white rounded"></div>
+                  </div>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4 text-center">
+                  Portfolio Management
+                </h3>
+                <p class="text-gray-600 text-center leading-relaxed">
+                  Comprehensive view of your investments including total assets,
+                  cash balance, and stock holdings.
+                </p>
+                <div class="mt-6 text-center w-full flex justify-center">
+                  <a
+                    href="assetdashboard.html"
+                    class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors w-40 justify-center"
+                  >
+                    <i class="fa fa-arrow-right mr-2"></i>
+                    View Portfolio
+                  </a>
+                </div>
               </div>
-              <h3 class="text-lg font-bold text-gray-900 mb-2 text-center">Stock Market</h3>
-              <p class="text-gray-600 text-sm text-center mb-4">View real-time stock quotes and market trends</p>
-              <a href="stock.html" class="block w-full bg-gray-50 hover:bg-primary hover:text-white text-primary text-center py-2 px-4 rounded-lg transition-colors font-medium">
-                <i class="fa fa-arrow-right mr-2"></i>View Market
-              </a>
+
+              <!-- Easy Trading Card -->
+              <div
+                class="bg-white rounded-xl shadow-lg p-8 hover-lift border border-gray-100 flex flex-col items-center"
+              >
+                <div
+                  class="w-16 h-16 bg-primary rounded-lg flex items-center justify-center mb-6 mx-auto"
+                >
+                  <i class="fa fa-line-chart text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4 text-center">
+                  Easy Trading
+                </h3>
+                <p class="text-gray-600 text-center leading-relaxed">
+                  Execute buy and sell orders safely with our simulated trading
+                  environment.
+                </p>
+                <div class="mt-6 text-center w-full flex justify-center">
+                  <a
+                    href="trading.html"
+                    class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors w-40 justify-center"
+                  >
+                    <i class="fa fa-arrow-right mr-2"></i>
+                    Start Trading
+                  </a>
+                </div>
+              </div>
+
+              <!-- Real-time Market Data Card -->
+              <div
+                class="bg-white rounded-xl shadow-lg p-8 hover-lift border border-gray-100 flex flex-col items-center"
+              >
+                <div
+                  class="w-16 h-16 bg-primary rounded-lg flex items-center justify-center mb-6 mx-auto"
+                >
+                  <!-- 折线图icon -->
+                  <svg
+                    width="32"
+                    height="32"
+                    viewBox="0 0 32 32"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <polyline
+                      points="4,24 12,16 20,22 28,10"
+                      stroke="white"
+                      stroke-width="3"
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <circle cx="4" cy="24" r="2" fill="white" />
+                    <circle cx="12" cy="16" r="2" fill="white" />
+                    <circle cx="20" cy="22" r="2" fill="white" />
+                    <circle cx="28" cy="10" r="2" fill="white" />
+                  </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4 text-center">
+                  Real-time Market Data
+                </h3>
+                <p class="text-gray-600 text-center leading-relaxed">
+                  Stay updated with live stock prices and market movements to
+                  make informed decisions.
+                </p>
+                <div class="mt-6 text-center w-full flex justify-center">
+                  <a
+                    href="stock.html"
+                    class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors w-40 justify-center"
+                  >
+                    <i class="fa fa-arrow-right mr-2"></i>
+                    View Market
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Access Grid Section -->
+          <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-8">
+              <h2 class="text-3xl font-bold text-gray-900 mb-4">
+                Quick Access
+              </h2>
+              <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                Navigate to different sections of your investment platform with
+                ease
+              </p>
             </div>
 
-            <!-- My Holdings Quick Access -->
-            <div class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100 group">
-              <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">
-                <i class="fa fa-briefcase text-white text-2xl"></i>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <!-- Stock Market Quick Access -->
+              <div
+                class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100 group"
+              >
+                <div
+                  class="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform"
+                >
+                  <i class="fa fa-line-chart text-white text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2 text-center">
+                  Stock Market
+                </h3>
+                <p class="text-gray-600 text-sm text-center mb-4">
+                  View real-time stock quotes and market trends
+                </p>
+                <a
+                  href="stock.html"
+                  class="block w-full bg-gray-50 hover:bg-primary hover:text-white text-primary text-center py-2 px-4 rounded-lg transition-colors font-medium"
+                >
+                  <i class="fa fa-arrow-right mr-2"></i>View Market
+                </a>
               </div>
-              <h3 class="text-lg font-bold text-gray-900 mb-2 text-center">My Holdings</h3>
-              <p class="text-gray-600 text-sm text-center mb-4">Manage your investment portfolio and assets</p>
-              <a href="assetdashboard.html" class="block w-full bg-gray-50 hover:bg-blue-500 hover:text-white text-blue-500 text-center py-2 px-4 rounded-lg transition-colors font-medium">
-                <i class="fa fa-arrow-right mr-2"></i>View Portfolio
-              </a>
-            </div>
 
-            <!-- Trading Center Quick Access -->
-            <div class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100 group">
-              <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">
-                <i class="fa fa-exchange text-white text-2xl"></i>
+              <!-- My Holdings Quick Access -->
+              <div
+                class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100 group"
+              >
+                <div
+                  class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform"
+                >
+                  <i class="fa fa-briefcase text-white text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2 text-center">
+                  My Holdings
+                </h3>
+                <p class="text-gray-600 text-sm text-center mb-4">
+                  Manage your investment portfolio and assets
+                </p>
+                <a
+                  href="assetdashboard.html"
+                  class="block w-full bg-gray-50 hover:bg-blue-500 hover:text-white text-blue-500 text-center py-2 px-4 rounded-lg transition-colors font-medium"
+                >
+                  <i class="fa fa-arrow-right mr-2"></i>View Portfolio
+                </a>
               </div>
-              <h3 class="text-lg font-bold text-gray-900 mb-2 text-center">Trading Center</h3>
-              <p class="text-gray-600 text-sm text-center mb-4">Execute buy and sell orders safely</p>
-              <a href="trading.html" class="block w-full bg-gray-50 hover:bg-green-500 hover:text-white text-green-500 text-center py-2 px-4 rounded-lg transition-colors font-medium">
-                <i class="fa fa-arrow-right mr-2"></i>Start Trading
-              </a>
-            </div>
 
-            <!-- Trading Records Quick Access -->
-            <div class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100 group">
-              <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">
-                <i class="fa fa-history text-white text-2xl"></i>
+              <!-- Trading Center Quick Access -->
+              <div
+                class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100 group"
+              >
+                <div
+                  class="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform"
+                >
+                  <i class="fa fa-exchange text-white text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2 text-center">
+                  Trading Center
+                </h3>
+                <p class="text-gray-600 text-sm text-center mb-4">
+                  Execute buy and sell orders safely
+                </p>
+                <a
+                  href="trading.html"
+                  class="block w-full bg-gray-50 hover:bg-green-500 hover:text-white text-green-500 text-center py-2 px-4 rounded-lg transition-colors font-medium"
+                >
+                  <i class="fa fa-arrow-right mr-2"></i>Start Trading
+                </a>
               </div>
-              <h3 class="text-lg font-bold text-gray-900 mb-2 text-center">Trading Records</h3>
-              <p class="text-gray-600 text-sm text-center mb-4">View your transaction history and records</p>
-              <a href="records.html" class="block w-full bg-gray-50 hover:bg-purple-500 hover:text-white text-purple-500 text-center py-2 px-4 rounded-lg transition-colors font-medium">
-                <i class="fa fa-arrow-right mr-2"></i>View Records
-              </a>
+
+              <!-- Trading Records Quick Access -->
+              <div
+                class="bg-white rounded-xl shadow-lg p-6 hover-lift border border-gray-100 group"
+              >
+                <div
+                  class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform"
+                >
+                  <i class="fa fa-history text-white text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2 text-center">
+                  Trading Records
+                </h3>
+                <p class="text-gray-600 text-sm text-center mb-4">
+                  View your transaction history and records
+                </p>
+                <a
+                  href="records.html"
+                  class="block w-full bg-gray-50 hover:bg-purple-500 hover:text-white text-purple-500 text-center py-2 px-4 rounded-lg transition-colors font-medium"
+                >
+                  <i class="fa fa-arrow-right mr-2"></i>View Records
+                </a>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </main>
-  </div>
+      </main>
+    </div>
 
-  <script>
-    // Check login status
-    function checkLoginStatus() {
-      const isLoggedIn = localStorage.getItem('isLoggedIn');
-      const userEmail = localStorage.getItem('userEmail');
-      
-      if (!isLoggedIn || !userEmail) {
-        window.location.href = 'login.html';
-        return;
+    <script>
+      // Check login status
+      function checkLoginStatus() {
+        const isLoggedIn = localStorage.getItem("isLoggedIn");
+        const userEmail = localStorage.getItem("userEmail");
+
+        if (!isLoggedIn || !userEmail) {
+          window.location.href = "login.html";
+          return;
+        }
+
+        document.getElementById("username").textContent = userEmail;
       }
-      
-      document.getElementById('username').textContent = userEmail;
-    }
-    
-    // Logout functionality
-    document.getElementById('logout-btn').addEventListener('click', function() {
-      localStorage.removeItem('userEmail');
-      localStorage.removeItem('isLoggedIn');
-      window.location.href = 'index.html';
-    });
-    
-    // Page load event
-    document.addEventListener('DOMContentLoaded', checkLoginStatus);
-  </script>
-</body>
-</html> 
+
+      // 动态加载侧边栏组件
+      fetch("/sidebar.html")
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById("sidebar-container").innerHTML = html;
+          // 加载完成后检查登录状态
+          // checkLoginStatus();
+        })
+        .catch((error) => console.error("加载侧边栏失败:", error));
+
+      // Logout functionality (会在sidebar加载后绑定)
+      function setupLogout() {
+        const logoutBtn = document.getElementById("signOutLink");
+        if (logoutBtn) {
+          logoutBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            localStorage.removeItem("userEmail");
+            localStorage.removeItem("isLoggedIn");
+            window.location.href = "index.html";
+          });
+        }
+      }
+
+      // Page load event
+      document.addEventListener("DOMContentLoaded", () => {
+        // 等待sidebar加载完成后再设置logout功能
+        setTimeout(setupLogout, 500);
+      });
+    </script>
+  </body>
+</html>
