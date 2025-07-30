@@ -1,0 +1,405 @@
+<!-- sidebar.html -->
+<!-- 移动端菜单按钮 -->
+<button class="mobile-menu-btn" id="mobileMenuBtn">
+  <i class="fas fa-bars"></i>
+</button>
+
+<!-- 移动端遮罩层 -->
+<div class="mobile-overlay" id="mobileOverlay"></div>
+
+<!-- 侧边栏 -->
+<aside class="sidebar expanded" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">A</div>
+      <div class="sidebar-logo-text">AssetPro</div>
+    </div>
+    <button class="sidebar-toggle" id="sidebarToggle">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+  </div>
+
+  <div class="sidebar-nav-container">
+    <ul class="sidebar-nav">
+      <li>
+        <a href="home.html" class="nav-item">
+          <i class="fas fa-home sidebar-nav-icon"></i>
+          <span class="sidebar-nav-text">Home</span>
+        </a>
+      </li>
+      <li>
+        <a href="assetdashboard.html" class="nav-item">
+          <i class="fas fa-chart-pie sidebar-nav-icon"></i>
+          <span class="sidebar-nav-text">Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a href="stock.html" class="nav-item">
+          <i class="fas fa-chart-line sidebar-nav-icon"></i>
+          <span class="sidebar-nav-text">Stock Market</span>
+        </a>
+      </li>
+      <li>
+        <a href="trading.html" class="nav-item">
+          <i class="fas fa-exchange-alt sidebar-nav-icon"></i>
+          <span class="sidebar-nav-text">Trading Center</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- 用户信息区域 - 固定在底部 -->
+  <div class="user-profile">
+    <div class="user-info">
+      <img
+        src="https://picsum.photos/id/64/200/200"
+        alt="User Avatar"
+        class="user-avatar"
+      />
+      <div class="user-details">
+        <div class="user-name">Team8 Demo</div>
+        <div class="user-email">team8demo@example.com</div>
+      </div>
+    </div>
+
+    <!-- 退出登录按钮 -->
+    <div class="sign-out-container">
+      <a href="#" class="sign-out" id="signOutLink">
+        <i class="fas fa-sign-out-alt"></i>
+        <span class="sign-out-text">Sign Out</span>
+      </a>
+    </div>
+  </div>
+</aside>
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+/>
+<style>
+  /* 侧边栏核心样式（从assetdashboard提取） */
+  :root {
+    --primary: #d32f2f;
+    --primary-light: rgba(255, 58, 70, 0.1);
+    --border: #eee;
+    --gray: #8c8c8c;
+    --dark: #222;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --transition: all 0.3s ease;
+  }
+
+  .sidebar {
+    width: 260px;
+    background-color: white;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    z-index: 10;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+  }
+
+  .sidebar.collapsed {
+    width: 80px;
+  }
+
+  .sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .sidebar-logo-icon {
+    width: 32px;
+    height: 32px;
+    background-color: var(--primary);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+  }
+
+  .sidebar-logo-text {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--primary);
+    transition: var(--transition);
+  }
+
+  .sidebar.collapsed .sidebar-logo-text {
+    display: none;
+  }
+
+  .sidebar-toggle {
+    background: none;
+    border: none;
+    color: var(--gray);
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 5px;
+    border-radius: 4px;
+    transition: var(--transition);
+  }
+
+  .sidebar-toggle:hover {
+    color: var(--primary);
+    background-color: rgba(255, 58, 70, 0.1);
+  }
+
+  .sidebar-nav-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-top: 20px;
+  }
+
+  .sidebar-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .sidebar-nav li a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    color: var(--dark);
+    text-decoration: none;
+    transition: var(--transition);
+    border-left: 4px solid transparent;
+  }
+
+  .sidebar-nav li a:hover {
+    background-color: rgba(255, 58, 70, 0.05);
+    border-left-color: var(--primary-light);
+    color: var(--primary);
+  }
+
+  .sidebar-nav li a.active {
+    background-color: rgba(255, 58, 70, 0.1);
+    border-left-color: var(--primary);
+    color: var(--primary);
+    font-weight: 500;
+  }
+
+  .sidebar-nav-icon {
+    font-size: 1.2rem;
+    width: 24px;
+    text-align: center;
+  }
+
+  .sidebar-nav-text {
+    transition: var(--transition);
+  }
+
+  .sidebar.collapsed .sidebar-nav-text {
+    display: none;
+  }
+
+  .user-profile {
+    padding: 20px;
+    border-top: 1px solid var(--border);
+    margin-top: auto;
+    background-color: white;
+    width: 100%;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 15px;
+  }
+
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: var(--border);
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .user-details {
+    transition: var(--transition);
+  }
+
+  .user-name {
+    font-weight: 500;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+  }
+
+  .user-email {
+    font-size: 0.8rem;
+    color: var(--gray);
+  }
+
+  .sidebar.collapsed .user-details {
+    display: none;
+  }
+
+  .sign-out-container {
+    padding-top: 15px;
+  }
+
+  .sign-out {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    color: var(--primary);
+    text-decoration: none;
+    border: 1px solid var(--primary);
+    border-radius: 4px;
+    text-align: center;
+    transition: var(--transition);
+    font-size: 0.8rem;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .sign-out:hover {
+    background-color: var(--primary);
+    color: white;
+  }
+
+  .sidebar.collapsed .sign-out-text {
+    display: none;
+  }
+
+  .sidebar.collapsed .sign-out {
+    justify-content: center;
+  }
+
+  /* 移动端样式 */
+  .mobile-menu-btn {
+    display: none;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 20;
+    background-color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    border: none;
+    color: var(--primary);
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+
+  .mobile-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9;
+  }
+
+  .mobile-overlay.active {
+    display: block;
+  }
+
+  @media (max-width: 768px) {
+    .mobile-menu-btn {
+      display: block;
+    }
+
+    .sidebar {
+      transform: translateX(-100%);
+    }
+
+    .sidebar.expanded {
+      transform: translateX(0);
+    }
+
+    .sidebar.collapsed {
+      transform: translateX(-100%);
+    }
+  }
+
+  @media (min-width: 769px) {
+    .sidebar {
+      transform: translateX(0);
+    }
+  }
+</style>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const sidebar = document.getElementById("sidebar");
+    const sidebarToggle = document.getElementById("sidebarToggle");
+    const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+    const mobileOverlay = document.getElementById("mobileOverlay");
+    const signOutLink = document.getElementById("signOutLink");
+
+    // 设置当前页面的导航高亮
+    function setActiveNavItem() {
+      const currentPage =
+        window.location.pathname.split("/").pop() || "index.html";
+      const navItems = document.querySelectorAll(".sidebar-nav a");
+
+      navItems.forEach((item) => {
+        item.classList.remove("active");
+        const href = item.getAttribute("href");
+
+        // 检查当前页面是否匹配导航项
+        if (
+          href === currentPage ||
+          (currentPage === "index.html" && href === "home.html") ||
+          (currentPage === "" && href === "home.html")
+        ) {
+          item.classList.add("active");
+        }
+      });
+    }
+
+    // 页面加载时设置活跃状态
+    setActiveNavItem();
+
+    // 切换侧边栏展开/收起
+    sidebarToggle.addEventListener("click", function () {
+      sidebar.classList.toggle("collapsed");
+      sidebar.classList.toggle("expanded");
+      mobileOverlay.classList.remove("active");
+    });
+    // 移动端菜单按钮点击事件
+    mobileMenuBtn.addEventListener("click", function () {
+      sidebar.classList.toggle("expanded");
+      mobileOverlay.classList.toggle("active");
+    });
+    // 移动端遮罩层点击事件
+    mobileOverlay.addEventListener("click", function () {
+      sidebar.classList.remove("expanded");
+      mobileOverlay.classList.remove("active");
+    });
+    // 退出登录功能
+    signOutLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (confirm("Are you sure you want to sign out?")) {
+        // 这里可以添加实际的退出登录逻辑
+        alert("Signing out...");
+        // 示例：跳转到登录页
+        // window.location.href = 'login.html';
+      }
+    });
+  });
+</script>
