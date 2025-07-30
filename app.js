@@ -903,6 +903,68 @@ app.get("/api/user/:userId/held-stocks", async (req, res) => {
   }
 });
 
+// Display transaction records status
+app.get('/api/user/:userId/state', async (req, res) => {
+  const { userId } = req.params;
+  console.log(`Fetching transaction state for user ${userId}`);
+
+  try {
+    const conn = await db.getConnection();
+
+    // Count total transactions and each type quantity
+    const [[counts]] = await conn.query(`
+      SELECT 
+        COUNT(*) AS totalTransactions,
+        SUM(type = 'buy') AS buyTransactions,
+        SUM(type = 'sell') AS sellTransactions
+      FROM transactions
+      WHERE user_id = ?
+    `, [userId]);
+
+    // Latest buy transaction
+    const [[recentBuy]] = await conn.query(`
+      SELECT symbol, quantity, price, timestamp
+      FROM transactions
+      WHERE user_id = ? AND type = 'buy'
+      ORDER BY timestamp DESC
+      LIMIT 1
+    `, [userId]);
+
+    // Latest sell transaction
+    const [[recentSell]] = await conn.query(`
+      SELECT symbol, quantity, price, timestamp
+      FROM transactions
+      WHERE user_id = ? AND type = 'sell'
+      ORDER BY timestamp DESC
+      LIMIT 1
+    `, [userId]);
+
+    // Calculate amounts
+    const buyTotal = recentBuy ? parseFloat(recentBuy.price) * recentBuy.quantity : 0;
+    const sellTotal = recentSell ? parseFloat(recentSell.price) * recentSell.quantity : 0;
+
+    res.json({
+      ...counts,
+      recentBuy: recentBuy ? {
+        ...recentBuy,
+        total: buyTotal,
+        timestamp: recentBuy.timestamp.toISOString().split('T')[0]
+      } : null,
+      recentSell: recentSell ? {
+        ...recentSell,
+        total: sellTotal,
+        timestamp: recentSell.timestamp.toISOString().split('T')[0]
+      } : null
+    });
+
+    conn.release();
+  } catch (err) {
+    console.error('Summary API Error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+  
+
 // Start server
 app.listen(port, () => {
   console.log(
