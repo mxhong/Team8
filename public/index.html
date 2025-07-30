@@ -1,4 +1,8 @@
 <!-- The home page before logging in  -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AssetPro - Smart Investing, Simplified</title>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -38,9 +42,15 @@
         background: linear-gradient(135deg, #d32f2f 0%, #ff4d4f 100%);
       }
       .hero-bg {
-        background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect width="1200" height="600" fill="%23f8f9fa"/><circle cx="200" cy="150" r="50" fill="%23ff4d4f" opacity="0.1"/><circle cx="1000" cy="450" r="80" fill="%23d32f2f" opacity="0.1"/><rect x="300" y="200" width="600" height="200" fill="%23ffffff" opacity="0.8"/></svg>');
+        background-image: url('index.jpg');
         background-size: cover;
         background-position: center;
+        background-repeat: no-repeat;
+        position: relative;
+      }
+      .hero-overlay {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(2px);
       }
     }
   </style>
@@ -82,8 +92,16 @@
     </header>
 
   <!-- Hero Section -->
-  <section class="hero-bg py-20">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+  <section class="hero-bg py-20 relative overflow-hidden">
+    <div class="hero-overlay absolute inset-0"></div>
+    <!-- 装饰圆圈 -->
+    <div class="absolute z-0 pointer-events-none w-full h-full top-0 left-0">
+      <div class="absolute" style="width:120px;height:120px;left:5%;top:18%;background:#ff4d4f22;border-radius:50%;"></div>
+      <div class="absolute" style="width:80px;height:80px;left:80%;top:10%;background:#d32f2f22;border-radius:50%;"></div>
+      <div class="absolute" style="width:60px;height:60px;left:60%;top:60%;background:#ff4d4f18;border-radius:50%;"></div>
+      <div class="absolute" style="width:100px;height:100px;left:20%;top:70%;background:#d32f2f18;border-radius:50%;"></div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
       <div id="welcomeSection">
         <h1 class="text-5xl font-bold text-gray-900 mb-6">
           Smart Investing, Simplified
@@ -121,8 +139,22 @@
   </section>
 
   <!-- Features Section -->
-  <section id="features" class="py-20 bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <section id="features" class="py-20 bg-gray-50 relative overflow-hidden">
+    <!-- 左侧半圆装饰 -->
+    <div class="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 z-0">
+      <div style="width:220px;height:220px;background:#ff4d4f22;border-radius: 50%;"></div>
+    </div>
+    <!-- 右侧半圆装饰 -->
+    <div class="hidden md:block absolute right-0 top-2/3 -translate-y-1/2 z-0">
+      <div style="width:180px;height:180px;background:#d32f2f22;border-radius: 50%;"></div>
+    </div>
+    <!-- 新增小圆点 -->
+    <div class="absolute z-0 pointer-events-none w-full h-full top-0 left-0">
+      <div class="absolute" style="width:60px;height:60px;left:15%;top:20%;background:#ff4d4f18;border-radius:50%;"></div>
+      <div class="absolute" style="width:40px;height:40px;left:75%;top:30%;background:#d32f2f18;border-radius:50%;"></div>
+      <div class="absolute" style="width:50px;height:50px;left:50%;top:80%;background:#ff4d4f15;border-radius:50%;"></div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <!-- Portfolio Management Card -->
         <div class="bg-white rounded-xl shadow-lg p-8 hover-lift border border-gray-100 flex flex-col items-center">
