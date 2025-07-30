@@ -57,8 +57,8 @@
         class="user-avatar"
       />
       <div class="user-details">
-        <div class="user-name">Jenny Wilson</div>
-        <div class="user-email">jenny.wilson@example.com</div>
+        <div class="user-name">Team8 Demo</div>
+        <div class="user-email">team8demo@example.com</div>
       </div>
     </div>
 
@@ -350,6 +350,31 @@
     const mobileMenuBtn = document.getElementById("mobileMenuBtn");
     const mobileOverlay = document.getElementById("mobileOverlay");
     const signOutLink = document.getElementById("signOutLink");
+
+    // 设置当前页面的导航高亮
+    function setActiveNavItem() {
+      const currentPage =
+        window.location.pathname.split("/").pop() || "index.html";
+      const navItems = document.querySelectorAll(".sidebar-nav a");
+
+      navItems.forEach((item) => {
+        item.classList.remove("active");
+        const href = item.getAttribute("href");
+
+        // 检查当前页面是否匹配导航项
+        if (
+          href === currentPage ||
+          (currentPage === "index.html" && href === "home.html") ||
+          (currentPage === "" && href === "home.html")
+        ) {
+          item.classList.add("active");
+        }
+      });
+    }
+
+    // 页面加载时设置活跃状态
+    setActiveNavItem();
+
     // 切换侧边栏展开/收起
     sidebarToggle.addEventListener("click", function () {
       sidebar.classList.toggle("collapsed");

@@ -218,9 +218,17 @@
           .then((response) => response.text())
           .then((html) => {
             document.getElementById("sidebar-container").innerHTML = html;
-            // After sidebar is loaded, check login status and load stocks
-            // checkLoginStatus();
-            loadHotStocks();
+
+            // 侧边栏加载完成后，手动设置当前页面的活跃状态
+            setTimeout(() => {
+              const navItems = document.querySelectorAll(".sidebar-nav a");
+              navItems.forEach((item) => {
+                item.classList.remove("active");
+                if (item.getAttribute("href") === "stock.html") {
+                  item.classList.add("active");
+                }
+              });
+            }, 100);
           })
           .catch((error) => console.error("加载侧边栏失败:", error));
         try {

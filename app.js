@@ -68,7 +68,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 // Twelve Data API configuration
-const TWELVE_DATA_API_KEY = "43230254888343009b1591f9b3c06f5e"; // Replace with your actual API key
+const TWELVE_DATA_API_KEY = "ec25a5bcfe4a40b892f70a7b576798cf"; // Replace with your actual API key
 const TWELVE_DATA_BASE_URL = "https://api.twelvedata.com";
 
 //------------- User API endpoints ------------

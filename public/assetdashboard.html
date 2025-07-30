@@ -448,7 +448,7 @@
       <!-- 顶部欢迎区 -->
       <div class="top-section">
         <div class="greeting">
-          <h1>Welcome back, Jenny</h1>
+          <h1>Welcome back, Team8</h1>
           <p>Here's your portfolio overview for today</p>
         </div>
         <button class="toggle-btn" id="hideBalanceBtn">
@@ -564,152 +564,170 @@
     </tbody>
   </table>
 </div>
-
-
     <script>
       // 动态加载侧边栏
       fetch("/sidebar.html")
         .then((response) => response.text())
         .then((html) => {
           document.getElementById("sidebar-container").innerHTML = html;
+          
+          // 侧边栏加载完成后，手动设置当前页面的活跃状态
+          setTimeout(() => {
+            const navItems = document.querySelectorAll('.sidebar-nav a');
+            navItems.forEach(item => {
+              item.classList.remove('active');
+              if (item.getAttribute('href') === 'assetdashboard.html') {
+                item.classList.add('active');
+              }
+            });
+          }, 100);
         })
         .catch((error) => console.error("加载侧边栏失败:", error));
 
-
+      
       //current holdings加载function
       async function fetchAndDisplayHoldings() {
-  try {
-    console.log('开始获取持仓数据...'); // 调试信息
-    
-    // 1. 调用后端API获取用户股票数据
-    const userId = 1; // 假设用户ID存储在localStorage中
-    const response = await fetch(`http://localhost:3000/api/user/${userId}/assets/stocks`);
+          try {
+            console.log('开始获取持仓数据...'); // 调试信息
+            // 1. 调用后端API获取用户股票数据
+            const userId = 1; // 假设用户ID存储在localStorage中
+            const response = await fetch(`http://localhost:3000/api/user/${userId}/assets/details`);
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const resData = await response.json();
+            console.log('API返回数据:', resData); // 调试信息
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const resData = await response.json();
-    console.log('API返回数据:', resData); // 调试信息
-
-    // 2. 筛选出股票类型资产（排除现金）并按总价值倒序排序
-    const stockHoldings = resData.data
-      .filter(item => item.assetType === 'stock')
-      .sort((a, b) => b.currentValue - a.currentValue); // 按总价值倒序排序
-    
-    console.log('处理后的股票数据:', stockHoldings); // 调试信息
-    
-    // 3. 获取表格主体元素
-    const tableBody = document.getElementById('holdingsTableBody');
-    tableBody.innerHTML = ''; // 清空现有内容
-    
-    // 4. 遍历数据并生成表格行
-    stockHoldings.forEach(stock => {
-      // 计算回报率
-      const returnRate = ((stock.currentValue - stock.totalCost) / stock.totalCost) * 100;
-      
-      // 根据回报率正负设置样式类
-      const returnClass = returnRate >= 0 ? 'return-positive' : 'return-negative';
-      
-      // 创建表格行
-      const row = document.createElement('tr');
-      
-      // 格式化数据显示
-      const quantity = stock.quantity % 1 === 0 ? stock.quantity.toFixed(0) : stock.quantity.toFixed(2);
-      const currentPrice = `$${stock.currentPrice.toFixed(2)}`;
-      const value = `$${stock.currentValue.toFixed(2)}`;
-      const rateText = `${returnRate.toFixed(2)}%`;
-      
-      // 设置行内容
-      row.innerHTML = `
-        <td class="symbol">${stock.symbol}</td>
-        <td>${quantity}</td>
-        <td class="price">${currentPrice}</td>
-        <td class="${returnClass}">
-          ${returnRate >= 0 ? '+' : ''}${rateText}
-        </td>
-        <td class="value" data-original="${value}">${value}</td>
-      `;
-      
-      tableBody.appendChild(row);
-    });
-
-    console.log('表格更新完成'); // 调试信息
-
-  } catch (error) {
-    console.error('获取持仓数据失败:', error);
-    // 如果API调用失败，使用模拟数据
-    console.log('使用模拟数据...'); // 调试信息
-    displayMockHoldings();
-  }
-}
+            // 2. 筛选出股票类型资产（排除现金）并按总价值倒序排序
+            // 检查数据结构，支持多种可能的响应格式
+            let stockData;
+            if (Array.isArray(resData)) {
+              // 直接是数组格式
+              stockData = resData;
+            } else if (resData.data && Array.isArray(resData.data)) {
+              // 包装在data属性中的数组格式
+              stockData = resData.data;
+            } else {
+              stockData = [];
+            }
+            
+            // 确保stockData是数组
+            if (!Array.isArray(stockData)) {
+              console.warn('API返回的数据不是数组格式:', stockData);
+              throw new Error('API返回的数据格式不正确');
+            }
+            
+            const stockHoldings = stockData
+              .filter(item => item.assetType === 'stock')
+              .sort((a, b) => b.currentValue - a.currentValue); // 按总价值倒序排序
+            
+            console.log('处理后的股票数据:', stockHoldings); // 调试信息
+            
+            // 3. 获取表格主体元素
+            const tableBody = document.getElementById('holdingsTableBody');
+            tableBody.innerHTML = ''; // 清空现有内容
+        
+          // 4. 遍历数据并生成表格行
+          stockHoldings.forEach(stock => {
+          // 计算回报率
+          const returnRate = ((stock.currentValue - stock.totalCost) / stock.totalCost) * 100;
+          // 根据回报率正负设置样式类
+          const returnClass = returnRate >= 0 ? 'return-positive' : 'return-negative';
+          // 创建表格行
+          const row = document.createElement('tr');
+          // 格式化数据显示
+          const quantity = stock.quantity % 1 === 0 ? stock.quantity.toFixed(0) : stock.quantity.toFixed(2);
+          const currentPrice = `$${stock.currentPrice.toFixed(2)}`;
+          const value = `$${stock.currentValue.toFixed(2)}`;
+          const rateText = `${returnRate.toFixed(2)}%`;
+          // 设置行内容
+          row.innerHTML = `
+            <td class="symbol">${stock.symbol}</td>
+            <td>${quantity}</td>
+            <td class="price">${currentPrice}</td>
+            <td class="${returnClass}">
+              ${returnRate >= 0 ? '+' : ''}${rateText}
+            </td>
+            <td class="value" data-original="${value}">${value}</td>
+          `;
+          tableBody.appendChild(row);
+          });
+        console.log('表格更新完成'); // 调试信息
+        } catch (error) {
+        console.error('获取持仓数据失败:', error);
+        // 如果API调用失败，使用模拟数据
+        console.log('使用模拟数据...'); // 调试信息
+        // displayMockHoldings();
+        }
+      }
+      fetchAndDisplayHoldings();
 
 // 显示模拟数据的函数
-function displayMockHoldings() {
-  const mockData = [
-    {
-      symbol: "GOOGL",
-      quantity: 5,
-      currentPrice: 1250.00,
-      currentValue: 6250.00,
-      totalCost: 6000.00
-    },
-    {
-      symbol: "MSFT", 
-      quantity: 8,
-      currentPrice: 350.00,
-      currentValue: 2800.00,
-      totalCost: 2700.00
-    },
-    {
-      symbol: "META",
-      quantity: 6,
-      currentPrice: 295.00,
-      currentValue: 1770.00,
-      totalCost: 1800.00
-    },
-    {
-      symbol: "AAPL",
-      quantity: 10,
-      currentPrice: 175.00,
-      currentValue: 1750.00,
-      totalCost: 1700.00
-    },
-    {
-      symbol: "NVDA",
-      quantity: 4,
-      currentPrice: 420.00,
-      currentValue: 1680.00,
-      totalCost: 1600.00
-    }
-  ];
+// function displayMockHoldings() {
+//   const mockData = [
+//     {
+//       symbol: "GOOGL",
+//       quantity: 5,
+//       currentPrice: 1250.00,
+//       currentValue: 6250.00,
+//       totalCost: 6000.00
+//     },
+//     {
+//       symbol: "MSFT", 
+//       quantity: 8,
+//       currentPrice: 350.00,
+//       currentValue: 2800.00,
+//       totalCost: 2700.00
+//     },
+//     {
+//       symbol: "META",
+//       quantity: 6,
+//       currentPrice: 295.00,
+//       currentValue: 1770.00,
+//       totalCost: 1800.00
+//     },
+//     {
+//       symbol: "AAPL",
+//       quantity: 10,
+//       currentPrice: 175.00,
+//       currentValue: 1750.00,
+//       totalCost: 1700.00
+//     },
+//     {
+//       symbol: "NVDA",
+//       quantity: 4,
+//       currentPrice: 420.00,
+//       currentValue: 1680.00,
+//       totalCost: 1600.00
+//     }
+//   ];
 
-  const tableBody = document.getElementById('holdingsTableBody');
-  tableBody.innerHTML = '';
+//   const tableBody = document.getElementById('holdingsTableBody');
+//   tableBody.innerHTML = '';
 
-  mockData.forEach(stock => {
-    const returnRate = ((stock.currentValue - stock.totalCost) / stock.totalCost) * 100;
-    const returnClass = returnRate >= 0 ? 'return-positive' : 'return-negative';
+//   mockData.forEach(stock => {
+//     const returnRate = ((stock.currentValue - stock.totalCost) / stock.totalCost) * 100;
+//     const returnClass = returnRate >= 0 ? 'return-positive' : 'return-negative';
     
-    const row = document.createElement('tr');
-    const quantity = stock.quantity % 1 === 0 ? stock.quantity.toFixed(0) : stock.quantity.toFixed(2);
-    const currentPrice = `$${stock.currentPrice.toFixed(2)}`;
-    const value = `$${stock.currentValue.toFixed(2)}`;
-    const rateText = `${returnRate.toFixed(2)}%`;
+//     const row = document.createElement('tr');
+//     const quantity = stock.quantity % 1 === 0 ? stock.quantity.toFixed(0) : stock.quantity.toFixed(2);
+//     const currentPrice = `$${stock.currentPrice.toFixed(2)}`;
+//     const value = `$${stock.currentValue.toFixed(2)}`;
+//     const rateText = `${returnRate.toFixed(2)}%`;
     
-    row.innerHTML = `
-      <td class="symbol">${stock.symbol}</td>
-      <td>${quantity}</td>
-      <td class="price">${currentPrice}</td>
-      <td class="${returnClass}">
-        ${returnRate >= 0 ? '+' : ''}${rateText}
-      </td>
-      <td class="value" data-original="${value}">${value}</td>
-    `;
+//     row.innerHTML = `
+//       <td class="symbol">${stock.symbol}</td>
+//       <td>${quantity}</td>
+//       <td class="price">${currentPrice}</td>
+//       <td class="${returnClass}">
+//         ${returnRate >= 0 ? '+' : ''}${rateText}
+//       </td>
+//       <td class="value" data-original="${value}">${value}</td>
+//     `;
     
-    tableBody.appendChild(row);
-  });
-}
+//     tableBody.appendChild(row);
+//   });
+// }
 
       // 初始化Chart.js图表
       const ctx = document.getElementById("assetChart").getContext("2d");
@@ -940,25 +958,25 @@ function displayMockHoldings() {
       }
 
       // 初始化时使用模拟数据创建图表
-      const mockAssetData = {
-        cashAmount: 5000,
-        totalAssets: 17615,
-        stockHoldings: [
-          { symbol: "GOOGL", value: 6250 },
-          { symbol: "MSFT", value: 2800 },
-          { symbol: "AAPL", value: 1750 },
-          { symbol: "AMZN", value: 405 },
-          { symbol: "TSLA", value: 1410 }, // 额外的股票用于测试"其他股票"功能
-        ],
-      };
+      // const mockAssetData = {
+      //   cashAmount: 5000,
+      //   totalAssets: 17615,
+      //   stockHoldings: [
+      //     { symbol: "GOOGL", value: 6250 },
+      //     { symbol: "MSFT", value: 2800 },
+      //     { symbol: "AAPL", value: 1750 },
+      //     { symbol: "AMZN", value: 405 },
+      //     { symbol: "TSLA", value: 1410 }, // 额外的股票用于测试"其他股票"功能
+      //   ],
+      // };
 
-      createAllocationChart(mockAssetData);
+      // createAllocationChart(mockAssetData);
 
       // 调用获取资产信息
       fetchAssetInfo();
 
       // 调用获取持仓信息
-      fetchAndDisplayHoldings();
+      
 
       // 隐藏/显示余额功能
       const hideBalanceBtn = document.getElementById("hideBalanceBtn");
