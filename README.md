@@ -1,36 +1,151 @@
-# Personal Asset Management System
+# AssetPro - Personal Asset Management System
 
-A comprehensive personal portfolio management system with real-time stock trading capabilities. Built with Node.js, Express, MySQL, and Twelve Data API integration.
+AssetPro is a comprehensive personal portfolio management platform that enables users to track investments, execute stock trades, and analyze portfolio performance in real-time. Built with modern web technologies and integrated with professional financial data APIs.
 
-## Features
+## 🚀 Key Features
 
-- **User Authentication**: Secure user registration and login with bcrypt password encryption
-- **Real-time Stock Data**: Live stock quotes, historical data, and symbol search via Twelve Data API
-- **Portfolio Management**: Track stocks and cash with automatic cost basis calculation
-- **Real-time Trading**: Buy and sell stocks at current market prices with atomic transactions
-- **Transaction History**: Complete audit trail with pagination support
-- **Asset Analytics**: Portfolio value tracking and performance metrics
+### **Complete Web Application**
+- **Responsive Frontend**: Modern, mobile-friendly interface with TailwindCSS
+- **Multi-page Application**: Dedicated pages for dashboard, trading, market data, and portfolio management
+- **Interactive Navigation**: Collapsible sidebar navigation with user profile management
 
-## Quick Start
+### **User Management**
+- **Secure Authentication**: User registration and login with bcrypt password encryption
+- **Demo Access**: Quick demo login (username: `team8demo`, password: `team8demo`)
+- **Session Management**: Persistent login state with localStorage
+
+### **Real-time Market Data**
+- **Dual API Integration**: Twelve Data API and Finnhub API for comprehensive market coverage
+- **Live Stock Quotes**: Real-time price updates with change indicators
+- **Stock Search**: Symbol and company name search functionality
+- **Popular Stocks Dashboard**: Pre-loaded trending stocks with live data
+- **Historical Data**: Time series data with configurable intervals
+
+### **Portfolio Management**
+- **Multi-asset Tracking**: Support for stocks and cash holdings
+- **Automatic Calculations**: Real-time portfolio valuation and cost basis tracking
+- **Asset Accumulation**: Smart handling of duplicate asset additions with weighted averages
+- **Performance Analytics**: Gain/loss calculations and portfolio performance metrics
+
+### **Trading System**
+- **Real-time Trading**: Buy and sell stocks at current market prices
+- **Atomic Transactions**: Database-level transaction safety
+- **Balance Validation**: Automatic cash and stock balance verification
+- **Live Price Integration**: Current market price fetching for all trades
+- **Smart Stock Selection**: Auto-populate sell panel with owned stocks only
+
+### **Transaction Management**
+- **Complete Audit Trail**: Full transaction history with filtering and pagination
+- **Advanced Filtering**: Filter by transaction type, stock symbol, and date ranges
+- **Transaction Statistics**: Real-time stats including buy/sell counts and values
+- **Recent Activity Feed**: Latest transactions with visual indicators
+
+## 🏗️ Architecture & Technology Stack
+
+### **Backend**
+- **Runtime**: Node.js with ES6+ modules
+- **Framework**: Express.js
+- **Database**: MySQL with connection pooling
+- **Authentication**: bcrypt for password hashing
+- **APIs**: Twelve Data & Finnhub for financial data
+
+### **Frontend**
+- **Styling**: TailwindCSS for responsive design
+- **Icons**: Font Awesome and Lucide icons
+- **Charts**: Chart.js for data visualization
+- **Architecture**: Multi-page application with shared components
+
+### **Database Schema**
+- **users**: User accounts with encrypted passwords
+- **assets**: Portfolio holdings (stocks and cash)
+- **transactions**: Complete trading history
+
+## 📱 Application Pages
+
+### **Public Pages**
+- **`index.html`**: Landing page with feature overview and authentication
+- **`login.html`**: User authentication portal
+
+### **Authenticated Pages**
+- **`home.html`**: Main dashboard with portfolio overview
+- **`assetdashboard.html`**: Comprehensive portfolio analytics and visualizations
+- **`stock.html`**: Real-time market data browser with search functionality
+- **`trading.html`**: Interactive trading interface for buy/sell operations
+- **`stock-detail.html`**: Detailed stock information and historical data
+
+### **Shared Components**
+- **`sidebar.html`**: Navigation sidebar with user profile management
+
+## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js (v14 or higher)
-- MySQL database
+- **Node.js** (v14 or higher)
+- **MySQL** database server
+- **API Keys**: 
 - Twelve Data API key (free tier available)
+  - Finnhub API key (free tier available)
 
-### Installation
-1. Clone the repository
-2. Install dependencies:
+### Installation & Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd Team8
+   ```
+
+2. **Install dependencies**
    ```bash
    npm install
    ```
-3. Configure MySQL database connection in `app.js`
-4. Add your Twelve Data API key to the `TWELVE_DATA_API_KEY` variable
-5. Start the server:
+
+3. **Database Setup**
    ```bash
-   npm run dev
+   # Create database (MySQL command line or GUI)
+   CREATE DATABASE portfolio_manager;
    ```
-6. API runs at: `http://localhost:3000`
+
+4. **Configure Database Connection**
+   
+   Update the database credentials in `app.js`:
+   ```javascript
+   const db = mysql.createPool({
+     host: 'localhost',
+     user: 'your_username',
+     password: 'your_password',
+     database: 'portfolio_manager',
+     waitForConnections: true,
+     connectionLimit: 10,
+     queueLimit: 0
+   });
+   ```
+
+5. **Add API Keys**
+   
+   Update the API keys in `app.js`:
+   ```javascript
+   const TWELVE_DATA_API_KEY = "your_twelve_data_api_key";
+   const FINN_HUB_API_KEY = "your_finnhub_api_key";
+   ```
+
+6. **Start the Application**
+   ```bash
+   # Development mode with auto-reload
+   npm run dev
+   
+   # Or production mode
+   npm start
+   ```
+
+7. **Access the Application**
+   - **Frontend**: `http://localhost:3000`
+   - **API Base**: `http://localhost:3000/api`
+
+### 🎯 Demo Access
+For quick testing, use the demo credentials:
+- **Username**: `team8demo`
+- **Password**: `team8demo`
+
+> **Note**: The application automatically creates all required database tables on startup.
 
 ### Database Configuration
 Update the database connection settings in `app.js`:
@@ -86,38 +201,52 @@ The system uses 3 main tables:
 | price | DECIMAL(12,2) | Price per share at transaction |
 | timestamp | TIMESTAMP | Transaction time |
 
-## API Endpoints
+## 🔗 API Documentation
 
-### User Authentication
-```
-POST /api/register                              # Register new user
-POST /api/login                                 # User login
-```
+### **User Authentication**
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/register` | Register new user account |
+| `POST` | `/api/login` | User login authentication |
 
-### Stock Market Data
-```
-GET /api/stock/quote/{symbol}                   # Get real-time stock price
-GET /api/stock/{symbol}?interval={}&outputsize={}  # Get historical data
-GET /api/stock/search/{keywords}                # Search stocks
-```
+### **Stock Market Data**
+| Method | Endpoint | Description | Parameters |
+|--------|----------|-------------|------------|
+| `GET` | `/api/stock/quote/{symbol}` | Get real-time stock quote (Twelve Data) | `symbol`: Stock symbol |
+| `GET` | `/api/stock/quote-finnhub/{symbol}` | Get real-time stock quote (Finnhub) | `symbol`: Stock symbol |
+| `GET` | `/api/stock/{symbol}` | Get historical stock data | `symbol`, `interval`, `outputsize` |
+| `GET` | `/api/stock/search/{keywords}` | Search stocks by symbol/name | `keywords`: Search term |
 
-### User Assets Management
-```
-POST /api/user/{userId}/assets                  # Add asset to portfolio
-GET  /api/user/{userId}/assets/details          # Get all assets with details
-GET  /api/user/{userId}/assets/cash             # Get total cash
-GET  /api/user/{userId}/assets/stocks           # Get total stock value
-GET  /api/user/{userId}/assets/stocks/cost      # Get total stock cost basis
-GET  /api/user/{userId}/assets/{asset_type}/{symbol}  # Get specific asset
-```
+### **Portfolio Management**
+| Method | Endpoint | Description | Parameters |
+|--------|----------|-------------|------------|
+| `POST` | `/api/user/{userId}/assets` | Add/update asset in portfolio | `asset_type`, `symbol`, `quantity`, `average_price` |
+| `GET` | `/api/user/{userId}/assets/details` | Get all assets with current prices | `userId`: User ID |
+| `GET` | `/api/user/{userId}/assets/cash` | Get total cash balance | `userId`: User ID |
+| `GET` | `/api/user/{userId}/assets/stocks` | Get total stock portfolio value | `userId`: User ID |
+| `GET` | `/api/user/{userId}/assets/stocks/cost` | Get total stock cost basis | `userId`: User ID |
+| `GET` | `/api/user/{userId}/assets/{asset_type}/{symbol}` | Get specific asset details | `userId`, `asset_type`, `symbol` |
 
-### Trading Operations
-```
-POST /api/user/{userId}/buy                     # Buy stock
-POST /api/user/{userId}/sell                    # Sell stock
-GET  /api/user/{userId}/transactions            # Get transaction history
-GET  /api/user/{userId}/held-stocks             # Get list of owned stocks
-```
+### **Trading Operations**
+| Method | Endpoint | Description | Parameters |
+|--------|----------|-------------|------------|
+| `POST` | `/api/user/{userId}/buy` | Execute buy order at market price | `symbol`, `quantity` |
+| `POST` | `/api/user/{userId}/sell` | Execute sell order at market price | `symbol`, `quantity` |
+| `GET` | `/api/user/{userId}/held-stocks` | Get list of owned stock symbols | `userId`: User ID |
+
+### **Transaction History**
+| Method | Endpoint | Description | Parameters |
+|--------|----------|-------------|------------|
+| `GET` | `/api/user/{userId}/transactions` | Get paginated transaction history | `page`, `pageSize`, `symbol`, `type` |
+| `GET` | `/api/user/{userId}/state` | Get transaction statistics summary | `userId`: User ID |
+
+### **API Features**
+- **Real-time Pricing**: Live stock quotes from professional APIs
+- **Dual Provider Support**: Twelve Data for comprehensive data, Finnhub for high-quota scenarios
+- **Atomic Transactions**: Database-level transaction safety for all trading operations
+- **Smart Pagination**: Efficient data retrieval with customizable page sizes
+- **Advanced Filtering**: Filter transactions by type, symbol, and date ranges
+- **Error Handling**: Comprehensive error responses with detailed messages
 
 ## Request Examples
 
@@ -269,40 +398,87 @@ GET /api/user/1/transactions?type=buy&page=1&pageSize=5  # Buy transactions with
 - **Database Transactions**: All trading operations are atomic to ensure data consistency
 - **Connection Pool**: MySQL connection pooling for optimal performance
 
-## Dependencies
+## 📦 Dependencies
 
-The project uses the following main dependencies:
-- **express**: Web framework
-- **mysql2**: MySQL database driver with promise support
-- **bcrypt**: Password encryption
-- **node-fetch**: HTTP client for API calls (built-in for Node.js 18+)
+### **Production Dependencies**
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `express` | ^5.1.0 | Web application framework |
+| `mysql2` | ^3.14.2 | MySQL database driver with promise support |
+| `bcrypt` | ^6.0.0 | Password hashing and encryption |
+| `cors` | ^2.8.5 | Cross-Origin Resource Sharing middleware |
+| `path` | ^0.12.7 | File path utilities |
+| `url` | ^0.11.4 | URL parsing utilities |
 
-## Error Handling
+### **Development Dependencies**
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `nodemon` | ^3.1.10 | Development server with auto-reload |
 
-The API includes comprehensive error handling for:
-- Invalid user credentials
-- Insufficient balance for trades
-- Stock symbol not found
-- Database connection errors
-- API rate limits and timeouts
+### **Frontend Libraries (CDN)**
+- **TailwindCSS**: Utility-first CSS framework
+- **Font Awesome**: Icon library
+- **Chart.js**: Data visualization library  
+- **Lucide**: Modern icon set
 
-## Notes
+## 🛡️ Security & Error Handling
 
-- Stock prices are fetched in real-time from Twelve Data API
-- All trades require sufficient cash/stock balance validation
-- Transactions use database-level atomic operations
-- Currently supports USD cash only
-- Free Twelve Data API tier includes rate limits
-- All endpoints return consistent JSON responses with proper HTTP status codes
+### **Security Features**
+- **Password Encryption**: bcrypt with salt rounds for secure password storage
+- **SQL Injection Protection**: Parameterized queries with mysql2 prepared statements
+- **Input Validation**: Comprehensive validation for all user inputs
+- **Session Management**: Secure client-side session handling
 
-## Frontend Integration
+### **Error Handling**
+The application includes comprehensive error handling for:
+- **Authentication Errors**: Invalid credentials, expired sessions
+- **Trading Errors**: Insufficient balance, invalid stock symbols, market closures
+- **Database Errors**: Connection issues, transaction failures, constraint violations
+- **API Errors**: Rate limiting, network timeouts, invalid responses
+- **Validation Errors**: Invalid input formats, missing required fields
 
-The system includes HTML frontend pages located in the `public/` directory:
-- `index.html` - Home page
-- `login.html` - User authentication
-- `stock.html` - Stock search and quotes
-- `trading.html` - Buy/sell interface
-- `records.html` - Transaction history
-- `assetdashboard.html` - Portfolio overview
+### **API Response Format**
+All API endpoints return consistent JSON responses:
+```javascript
+// Success Response
+{
+  "success": true,
+  "data": { /* response data */ },
+  "message": "Operation completed successfully"
+}
+
+// Error Response  
+{
+  "error": "Error type",
+  "message": "Detailed error description",
+  "code": 400
+}
+```
+
+## 🚨 Important Notes
+
+### **Trading System**
+- **Real-time Pricing**: Stock prices fetched live from professional APIs
+- **Market Hours**: Trading available 24/7 (demo system)  
+- **Balance Validation**: Automatic verification of cash/stock balances before trades
+- **Atomic Operations**: All trading operations use database transactions
+
+### **API Limitations**
+- **Twelve Data**: Free tier includes rate limits (800 requests/day)
+- **Finnhub**: Higher rate limits but fewer data points
+- **Currency Support**: Currently USD only
+- **Demo Data**: Uses hardcoded user ID (1) for demo purposes
+
+### **Browser Compatibility**
+- **Modern Browsers**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
+- **Mobile Support**: Responsive design for iOS and Android devices
+- **JavaScript**: ES6+ features, requires modern browser support
+
+## 🤝 Contributing
+
+This is a training project for Team 8. For educational purposes and internal development only.
 
 ---
+
+**AssetPro** - Smart Investing, Simplified  
+© 2025 Team 8 Demo Version
