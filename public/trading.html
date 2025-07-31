@@ -520,7 +520,7 @@
                   <div class="trade-card">
                     <h2 class="text-xl font-semibold mb-4 text-green-600">Buy Stock</h2>
                     <p class="text-sm text-gray-500 mb-6">
-                      Select stock and set buy parameters (Long)
+                      Select stock and set buy parameters 
                     </p>
 
                     <div class="space-y-4">
@@ -604,7 +604,7 @@
                         id="buyButton"
                         class="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors font-medium"
                       >
-                        Buy (Long)
+                        Buy 
                       </button>
                     </div>
                   </div>
@@ -613,7 +613,7 @@
                   <div class="trade-card">
                     <h2 class="text-xl font-semibold mb-4 text-red-600">Sell Stock</h2>
                     <p class="text-sm text-gray-500 mb-6">
-                      Select stock and set sell parameters (Short)
+                      Select stock and set sell parameters 
                     </p>
 
                     <div class="space-y-4">
@@ -691,7 +691,7 @@
                         id="sellButton"
                         class="w-full py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors font-medium"
                       >
-                        Sell (Short)
+                        Sell 
                       </button>
                     </div>
                   </div>
@@ -844,7 +844,7 @@
                       <span class="font-semibold text-lg" id="totalTransactions">2</span>
                     </div>
                     <div class="flex justify-between items-center">
-                      <span class="text-gray-600">Buy Transactions (Long)</span>
+                      <span class="text-gray-600">Buy Transactions </span>
                       <span
                         class="font-semibold text-lg text-green-600"
                         id="buyTransactions"
@@ -853,7 +853,7 @@
                     </div>
                     <div class="flex justify-between items-center">
                       <span class="text-gray-600"
-                        >Sell Transactions (Short)</span
+                        >Sell Transactions </span
                       >
                       <span
                         class="font-semibold text-lg text-red-600"
@@ -880,7 +880,7 @@
                           ></i>
                         </div>
                         <div>
-                          <div class="text-sm font-medium">Buy (Long) AAPL</div>
+                          <div class="text-sm font-medium">Buy AAPL</div>
                           <div class="text-xs text-gray-500">
                             100 shares @ $170.00
                           </div>
@@ -903,7 +903,7 @@
                         </div>
                         <div>
                           <div class="text-sm font-medium">
-                            Sell (Short) MSFT
+                            Sell  MSFT
                           </div>
                           <div class="text-xs text-gray-500">
                             50 shares @ $307.42
@@ -1637,7 +1637,7 @@
         element.className = "flex items-center justify-between py-2 border-b";
 
         const sign = type === "buy" ? "negative" : "positive";
-        const actionText = type === "buy" ? "Buy (Long)" : "Sell (Short)";
+        const actionText = type === "buy" ? "Buy " : "Sell ";
 
         // 根据交易类型确定金额符号和颜色
         const amountPrefix = type === "buy" ? "-" : "+";
@@ -1697,14 +1697,14 @@
 
       const typeMap = {
         buy: {
-          label: "Buy (Long)",
+          label: "Buy ",
           icon: "trending-up",
           badgeClass: "badge-long",
           amountClass: "text-red-600",
           sign: "-",
         },
         sell: {
-          label: "Sell (Short)",
+          label: "Sell ",
           icon: "trending-down",
           badgeClass: "badge-short",
           amountClass: "text-green-600",
