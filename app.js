@@ -16,7 +16,7 @@ const port = 3000;
 const db = mysql.createPool({
   host: "localhost",
   user: "root",
-  password: "sigrid123",
+  password: "root",
   database: "portfolio_manager",
   waitForConnections: true,
   connectionLimit: 10,

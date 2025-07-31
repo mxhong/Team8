@@ -32,7 +32,7 @@
       body {
         background-color: var(--light-gray);
         color: var(--text-dark);
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-family: "Inter", "system-ui", sans-serif;
         display: flex;
         min-height: 100vh;
         margin: 0;
@@ -473,7 +473,7 @@
     <div class="main">
       <div class="flex justify-between items-center mb-6">
             <div>
-              <h1 class="text-3xl font-bold text-gray-800">Trading System</h1>
+              <h1 class="text-3xl font-extrabold text-[#222] mb-1">Trading System</h1>
               <p class="text-gray-600 mt-2">
                 Buy and sell stocks, manage your investment portfolio
               </p>
@@ -646,15 +646,15 @@
                             placeholder="Search or select stock"
                           />
                           <datalist id="sellStockOptions">
-                            <option value="AAPL">AAPL - Apple Inc.</option>
+                            <!-- <option value="AAPL">AAPL - Apple Inc.</option>
                             <option value="MSFT">MSFT - Microsoft Corp.</option>
                             <option value="GOOGL">GOOGL - Alphabet Inc.</option>
-                            <option value="TSLA">TSLA - Tesla Inc.</option>
+                            <option value="TSLA">TSLA - Tesla Inc.</option> -->
                           </datalist>
                         </div>
                         <div
-                          id="sellSearchResults"
-                          class="search-results hidden"
+                        id="sellSearchResults" 
+                        class="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 hidden"
                         ></div>
                       </div>
 
@@ -1184,41 +1184,278 @@
       // });
 
       // 新增：失去焦点时自动获取（不再依赖回车）
-      document
-        .getElementById("sellSearch")
-        .addEventListener("blur", async () => {
-          const symbol = document
-            .getElementById("sellSearch")
-            .value.trim()
-            .toUpperCase();
-          if (!symbol) return;
+      // document
+      //   .getElementById("sellSearch")
+      //   .addEventListener("blur", async () => {
+      //     const symbol = document
+      //       .getElementById("sellSearch")
+      //       .value.trim()
+      //       .toUpperCase();
+      //     if (!symbol) return;
 
-          try {
-            // const res = await fetch(`/api/stock/quote/${symbol}`);
-            const res = await fetch(`/api/stock/quote-finnhub/${symbol}`);
-            if (!res.ok) throw new Error("Failed to fetch price");
+      //     try {
+      //       // const res = await fetch(`/api/stock/quote/${symbol}`);
+      //       const res = await fetch(`/api/stock/quote-finnhub/${symbol}`);
+      //       if (!res.ok) throw new Error("Failed to fetch price");
 
-            const data = await res.json();
-            const price = parseFloat(data.c).toFixed(2);
-            const percentChange = parseFloat(data.dp).toFixed(2);
+      //       const data = await res.json();
+      //       const price = parseFloat(data.c).toFixed(2);
+      //       const percentChange = parseFloat(data.dp).toFixed(2);
 
-            document.getElementById(
-              "sellCurrentPrice"
-            ).textContent = `$${price}`;
-            document.getElementById("sellSearch").dataset.price = price;
-            // document.getElementById("sellSelect").value = symbol;
+      //       document.getElementById(
+      //         "sellCurrentPrice"
+      //       ).textContent = `$${price}`;
+      //       document.getElementById("sellSearch").dataset.price = price;
+      //       // document.getElementById("sellSelect").value = symbol;
 
-            const changeElement = document.getElementById("sellPriceChange");
-            const isPositive = percentChange >= 0;
-            changeElement.textContent = `${
-              isPositive ? "+" : ""
-            }${percentChange}%`;
-            changeElement.style.color = isPositive ? "green" : "red";
-          } catch (err) {
-            console.error(err);
-            alert("Stock not found or API error");
+      //       const changeElement = document.getElementById("sellPriceChange");
+      //       const isPositive = percentChange >= 0;
+      //       changeElement.textContent = `${
+      //         isPositive ? "+" : ""
+      //       }${percentChange}%`;
+      //       changeElement.style.color = isPositive ? "green" : "red";
+      //     } catch (err) {
+      //       console.error(err);
+      //       alert("Stock not found or API error");
+      //     }
+      //   });
+
+      // 获取用户持有股票并初始化卖出面板
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          const userId = 1; 
+          const response = await fetch(`/api/user/${userId}/held-stocks`);
+          
+          if (!response.ok) {
+            throw new Error(`Failed to get held stocks: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          const datalist = document.getElementById('sellStockOptions');
+          
+          // 清除现有选项
+          datalist.innerHTML = '';
+          
+          // 添加新选项
+          if (data.symbols && data.symbols.length > 0) {
+            data.symbols.forEach(symbol => {
+              const option = document.createElement('option');
+              option.value = symbol;
+              option.textContent = `${symbol} (My Stock)`;
+              datalist.appendChild(option);
+            });
+            
+            // 添加搜索功能（仅限持有股票）
+            setupSellSearch(data.symbols);
+          } else {
+            // 当用户没有持有任何股票时
+            const noStockOption = document.createElement('option');
+            noStockOption.value = '';
+            noStockOption.textContent = "You don't hold any stocks";
+            noStockOption.disabled = true;
+            noStockOption.selected = true;
+            datalist.appendChild(noStockOption);
+            
+            // 禁用搜索输入和卖出按钮
+            document.getElementById('sellSearch').disabled = true;
+            document.getElementById('sellButton').disabled = true;
+            document.getElementById('sellQuantity').disabled = true;
+            
+            // 显示提示信息
+            const input = document.getElementById('sellSearch');
+            input.value = "You don't hold any stocks";
+          }
+          
+        } catch (error) {
+          console.error('Failed to load held stocks:', error);
+          showNotification('Failed to load stock list, please try again later', 'error');
+        }
+      });
+
+      // 设置卖出面板搜索功能（仅限持有股票）
+      function setupSellSearch(heldSymbols) {
+        const sellSearch = document.getElementById('sellSearch');
+        const resultsContainer = document.getElementById('sellSearchResults');
+        
+        // 输入事件处理
+        sellSearch.addEventListener('input', function(e) {
+          const searchTerm = this.value.trim().toUpperCase();
+          resultsContainer.innerHTML = '';
+          resultsContainer.classList.add('hidden');
+          
+          if (!searchTerm) return;
+          
+          // 过滤匹配的持有股票
+          const matches = heldSymbols.filter(symbol => 
+            symbol.includes(searchTerm)
+          );
+          
+          if (matches.length === 0) {
+            resultsContainer.innerHTML = `
+              <div class="p-2 text-center text-gray-500">
+                No matching stocks in your holdings
+              </div>
+            `;
+            resultsContainer.classList.remove('hidden');
+            return;
+          }
+          
+          // 显示匹配结果
+          resultsContainer.classList.remove('hidden');
+          matches.forEach(symbol => {
+            const resultItem = document.createElement('div');
+            resultItem.className = 'p-2 hover:bg-gray-100 cursor-pointer rounded-md border-b border-gray-100 last:border-0';
+            resultItem.textContent = `${symbol} (My Stock)`;
+            resultItem.addEventListener('click', () => {
+              sellSearch.value = symbol;
+              resultsContainer.classList.add('hidden');
+              
+              // 获取并显示股票价格
+              fetchStockPrice(symbol);
+            });
+            resultsContainer.appendChild(resultItem);
+          });
+        });
+        // 点击页面其他地方时隐藏下拉列表
+        document.addEventListener('click', function(event) {
+          if (!sellSearch.contains(event.target) && !datalist.contains(event.target)) {
+            datalist.classList.add('hidden');
           }
         });
+        
+        // 点击事件处理 - 显示所有持有股票
+        // sellSearch.addEventListener('click', function(e) {
+        //   if (this.value === '') {
+        //     // 显示所有持有股票
+        //     resultsContainer.innerHTML = '';
+        //     resultsContainer.classList.remove('hidden');
+            
+        //     heldSymbols.forEach(symbol => {
+        //       const resultItem = document.createElement('div');
+        //       resultItem.className = 'p-2 hover:bg-gray-100 cursor-pointer rounded-md border-b border-gray-100 last:border-0';
+        //       resultItem.textContent = `${symbol} (Your Stock)`;
+        //       resultItem.addEventListener('click', () => {
+        //         sellSearch.value = symbol;
+        //         resultsContainer.classList.add('hidden');
+                
+        //         // 获取并显示股票价格
+        //         fetchStockPrice(symbol);
+        //       });
+        //       resultsContainer.appendChild(resultItem);
+        //     });
+        //   }
+        // });
+        
+        // 当选择股票后自动获取价格
+        sellSearch.addEventListener('change', function() {
+          const symbol = this.value.trim().toUpperCase();
+          if (heldSymbols.includes(symbol)) {
+            fetchStockPrice(symbol);
+          }
+        });
+      }
+      
+
+      // 获取股票价格并更新UI
+      async function fetchStockPrice(symbol) {
+        try {
+          // 显示加载状态
+          document.getElementById('sellCurrentPrice').textContent = 'Loading...';
+          document.getElementById('sellPriceChange').textContent = '';
+          
+
+          console.log(symbol);
+          // 调用API获取股票价格
+          const response = await fetch(`/api/stock/quote-finnhub/${symbol}`);
+          console.log(response);
+          
+          if (!response.ok) {
+            throw new Error(`Failed to fetch price: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          const price = parseFloat(data.c).toFixed(2);
+          const percentChange = parseFloat(data.dp).toFixed(2);
+          
+          // 更新UI
+          document.getElementById('sellCurrentPrice').textContent = `$${price}`;
+          
+          const changeElement = document.getElementById('sellPriceChange');
+          const isPositive = percentChange >= 0;
+          changeElement.textContent = `${isPositive ? '+' : ''}${percentChange}%`;
+          changeElement.style.color = isPositive ? 'green' : 'red';
+          
+          // 保存价格到数据属性
+          document.getElementById('sellSearch').dataset.price = price;
+          
+        } catch (error) {
+          console.error(`Failed to fetch ${symbol} price:`, error);
+          document.getElementById('sellCurrentPrice').textContent = '$0.00';
+          document.getElementById('sellPriceChange').textContent = 'N/A';
+          document.getElementById('sellPriceChange').style.color = 'gray';
+        }
+      }
+
+      // 卖出按钮事件处理
+      document.getElementById('sellButton').addEventListener('click', async () => {
+        const sellSearch = document.getElementById('sellSearch');
+        const symbol = sellSearch.value.trim().toUpperCase();
+        const quantity = document.getElementById('sellQuantity').value;
+        
+        // 验证输入
+        if (!symbol) {
+          showNotification('Please select a stock to sell', 'error');
+          return;
+        }
+        
+        if (!quantity || isNaN(quantity) || parseFloat(quantity) <= 0) {
+          showNotification('Please enter a valid quantity', 'error');
+          return;
+        }
+        
+        try {
+          // 获取当前价格（从数据属性或API）
+          const currentPrice = sellSearch.dataset.price || await fetchStockPrice(symbol);
+          
+          // 调用卖出API
+          const response = await fetch('/api/user/1/sell', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: 1,
+              symbol,
+              quantity: parseFloat(quantity),
+              price: currentPrice,
+              type: 'sell'
+            })
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Sell failed: ${response.status}`);
+          }
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            showNotification(`Successfully sold ${quantity} shares of ${symbol}`, 'success');
+            
+            // 刷新界面
+            location.reload(); // 或者更新特定组件
+          } else {
+            throw new Error(result.error || 'Sell transaction failed');
+          }
+          
+        } catch (error) {
+          console.error('Sell execution failed:', error);
+          showNotification(`Sell failed: ${error.message}`, 'error');
+        }
+      });
+
+      // 显示通知的辅助函数
+      function showNotification(message, type = 'info') {
+        // 这里可以使用Toast库或自定义实现
+        alert(`${type.toUpperCase()}: ${message}`);
+      }
 
       //买入接口
       // 改成用 id 选择器绑定事件
@@ -1538,7 +1775,7 @@
       //end
 
       // Initialize the application
-      init();
+      // init();
     </script>
   </body>
 </html>

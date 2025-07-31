@@ -14,9 +14,6 @@
       <div class="sidebar-logo-icon">A</div>
       <div class="sidebar-logo-text">AssetPro</div>
     </div>
-    <button class="sidebar-toggle" id="sidebarToggle">
-      <i class="fas fa-chevron-left"></i>
-    </button>
   </div>
 
   <div class="sidebar-nav-container">
@@ -346,7 +343,6 @@
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const sidebar = document.getElementById("sidebar");
-    const sidebarToggle = document.getElementById("sidebarToggle");
     const mobileMenuBtn = document.getElementById("mobileMenuBtn");
     const mobileOverlay = document.getElementById("mobileOverlay");
     const signOutLink = document.getElementById("signOutLink");
@@ -375,12 +371,7 @@
     // 页面加载时设置活跃状态
     setActiveNavItem();
 
-    // 切换侧边栏展开/收起
-    sidebarToggle.addEventListener("click", function () {
-      sidebar.classList.toggle("collapsed");
-      sidebar.classList.toggle("expanded");
-      mobileOverlay.classList.remove("active");
-    });
+
     // 移动端菜单按钮点击事件
     mobileMenuBtn.addEventListener("click", function () {
       sidebar.classList.toggle("expanded");
