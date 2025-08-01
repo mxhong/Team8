@@ -1207,6 +1207,25 @@
           }
         }
       });
+
+      // Logout functionality (会在sidebar加载后绑定)
+      function setupLogout() {
+        const logoutBtn = document.getElementById("signOutLink");
+        if (logoutBtn) {
+          logoutBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            localStorage.removeItem("userEmail");
+            localStorage.removeItem("isLoggedIn");
+            window.location.href = "index.html";
+          });
+        }
+      }
+
+      // Page load event
+      document.addEventListener("DOMContentLoaded", () => {
+        // 等待sidebar加载完成后再设置logout功能
+        setTimeout(setupLogout, 500);
+      });
     </script>
   </body>
 </html>
