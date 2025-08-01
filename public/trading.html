@@ -1500,45 +1500,45 @@
         });
       });
 
-      // 卖出接口模块
-      document.addEventListener("DOMContentLoaded", () => {
-        const sellButton = document.getElementById("sellButton");
-        sellButton.addEventListener("click", async () => {
-          const symbol = document.getElementById("sellSearch").value.trim();
-          const quantity = parseInt(
-            document.getElementById("sellQuantity").value
-          );
+      // // 卖出接口模块
+      // document.addEventListener("DOMContentLoaded", () => {
+      //   const sellButton = document.getElementById("sellButton");
+      //   sellButton.addEventListener("click", async () => {
+      //     const symbol = document.getElementById("sellSearch").value.trim();
+      //     const quantity = parseInt(
+      //       document.getElementById("sellQuantity").value
+      //     );
 
-          if (!symbol) {
-            alert("Please select a stock");
-            return;
-          }
+      //     if (!symbol) {
+      //       alert("Please select a stock");
+      //       return;
+      //     }
 
-          if (!quantity || quantity <= 0) {
-            alert("Please enter a valid sell quantity");
-            return;
-          }
+      //     if (!quantity || quantity <= 0) {
+      //       alert("Please enter a valid sell quantity");
+      //       return;
+      //     }
 
-          try {
-            const res = await fetch(`/api/user/1/sell`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ symbol, quantity }),
-            });
+      //     try {
+      //       const res = await fetch(`/api/user/1/sell`, {
+      //         method: "POST",
+      //         headers: { "Content-Type": "application/json" },
+      //         body: JSON.stringify({ symbol, quantity }),
+      //       });
 
-            const result = await res.json();
-            if (res.ok) {
-              alert(
-                `Sell successful：${result.quantity} shares of ${result.symbol}, price $${result.price}`
-              );
-            } else {
-              alert("Sell failed：" + (result.error || result.message));
-            }
-          } catch (err) {
-            alert("Request error：" + err.message);
-          }
-        });
-      });
+      //       const result = await res.json();
+      //       // if (res.ok) {
+      //       //   alert(
+      //       //     `Sell successful：${result.quantity} shares of ${result.symbol}, price $${result.price}`
+      //       //   );
+      //       // } else {
+      //       //   alert("Sell failed：" + (result.error || result.message));
+      //       // }
+      //     } catch (err) {
+      //       alert("Request error：" + err.message);
+      //     }
+      //   });
+      // });
 
       //获取Total value
       async function updateTotalValue() {

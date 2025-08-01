@@ -6,3 +6,4 @@ insert into users (username, email, password) values ('Test', 'test@test.com', '
 
 select * from users;
 select * from assets;
+select * from transactions;
